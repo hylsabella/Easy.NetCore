@@ -2,6 +2,9 @@
 
 namespace Easy.Common.NetCore.MQ
 {
+    /// <summary>
+    /// 标记为消费者
+    /// </summary>
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = true)]
     public class MqConsumerAttribute : Attribute
     {

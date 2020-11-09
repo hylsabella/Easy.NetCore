@@ -164,7 +164,7 @@ namespace Easy.Common.NetCore.Startup
             var serviceLocator = new AutofacServiceLocator(autofacContainer);
 
             new AppStartup()
-                .InitIoc(serviceLocator)
+                .InitIoC(serviceLocator)
                 .Start();
         }
     }

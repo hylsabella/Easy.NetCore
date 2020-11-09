@@ -4,6 +4,9 @@ using System.Reflection;
 
 namespace Easy.Common.NetCore.MQ
 {
+    /// <summary>
+    /// 消费执行器
+    /// </summary>
     public class MqConsumerExecutor
     {
         public MqConsumerExecutor(string routeName, ushort prefetchCount, uint prefetchSize, bool autoAck, TypeInfo typeInfo, MethodInfo methodInfo, IList<ParameterDescriptor> parameters)

@@ -115,10 +115,7 @@ namespace Easy.Common.NetCore.Startup
         /// </summary>
         public static AppStartup RegRedisCache(this AppStartup startup, TimeSpan? cacheExpires = null)
         {
-            if (EasyAutofac.Container != null)
-            {
-                throw new Exception("注册Redis必须在初始化IOC容器【InitIoc】之前完成！");
-            }
+            if (EasyAutofac.Container != null) throw new Exception("注册Redis必须在初始化IOC容器生成之前完成！");
 
             RedisCache redisCache = null;
 
@@ -166,13 +163,15 @@ namespace Easy.Common.NetCore.Startup
         }
 
         /// <summary>
-        /// 初始化MQ消费者绑定（在InitIoc方法后执行）
+        /// 初始化MQ消费者事件绑定（在IOC容器生成后执行）
         /// </summary>
-        public static AppStartup MqReceivedBind(this AppStartup startup)
+        public static AppStartup BindMqConsumer(this AppStartup startup)
         {
-            var receivedBinder = EasyIocContainer.GetInstance<IMqReceivedBinder>();
+            if (EasyAutofac.Container == null) throw new Exception("初始化MQ消费者事件绑定必须在IOC容器生成后执行！");
 
-            receivedBinder.Bind();
+            var binder = EasyIocContainer.GetInstance<IMqConsumerBinder>();
+
+            binder.BindConsumer();
 
             return startup;
         }
@@ -223,9 +222,9 @@ namespace Easy.Common.NetCore.Startup
         }
 
         /// <summary>
-        /// 初始化全局Ioc容器
+        /// 初始化全局IoC容器
         /// </summary>
-        public static AppStartup InitIoc(this AppStartup startup, IServiceLocator serviceLocator)
+        public static AppStartup InitIoC(this AppStartup startup, IServiceLocator serviceLocator)
         {
             if (serviceLocator == null) throw new Exception("IServiceLocator对象不能为空");
 

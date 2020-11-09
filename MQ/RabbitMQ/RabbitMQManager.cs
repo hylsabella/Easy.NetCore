@@ -1,17 +1,18 @@
 ﻿using Easy.Common.NetCore.Helpers;
-using Easy.Common.NetCore.IoC;
 using Easy.Common.NetCore.Setting;
-using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
 using System;
+using System.Configuration;
 
 namespace Easy.Common.NetCore.MQ.RabbitMQ
 {
+    /// <summary>
+    /// RabbitMQ连接管理
+    /// </summary>
     public static class RabbitMQManager
     {
         private readonly static object _lockerConn = new object();
         private static IConnection _connection;
-        private static readonly IConfiguration _configuration = EasyIocContainer.Container.GetInstance<IConfiguration>();
 
         public static IConnection Connection
         {
@@ -31,11 +32,16 @@ namespace Easy.Common.NetCore.MQ.RabbitMQ
                                     _connection.Close();
                                 }
 
-                                string hostName = _configuration["appSettings:RabbitMQ.HostName"];
-                                string userName = _configuration["appSettings:RabbitMQ.UserName"];
-                                string password = _configuration["appSettings:RabbitMQ.Pwd"];
+                                string hostName = ConfigurationManager.AppSettings["RabbitMQ.HostName"];
+                                if (!int.TryParse(ConfigurationManager.AppSettings["RabbitMQ.Port"], out int port))
+                                {
+                                    throw new Exception("请检查【RabbitMQ.Port】是否为合法端口号");
+                                }
 
-                                bool.TryParse(_configuration["appSettings:RabbitMQ.PwdEncrypt"] ?? "", out bool isEncryption);
+                                string userName = ConfigurationManager.AppSettings["RabbitMQ.UserName"];
+                                string password = ConfigurationManager.AppSettings["RabbitMQ.Pwd"];
+
+                                bool.TryParse(ConfigurationManager.AppSettings["RabbitMQ.PwdEncrypt"] ?? "", out bool isEncryption);
 
                                 if (isEncryption)
                                 {
@@ -45,6 +51,7 @@ namespace Easy.Common.NetCore.MQ.RabbitMQ
                                 var factory = new ConnectionFactory
                                 {
                                     HostName = hostName,
+                                    Port = port,
                                     UserName = userName,
                                     Password = password,
                                 };

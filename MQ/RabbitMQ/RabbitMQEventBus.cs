@@ -1,31 +1,34 @@
 ﻿using Newtonsoft.Json;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using System;
 using System.Text;
 
 namespace Easy.Common.NetCore.MQ.RabbitMQ
 {
-    public class RabbitMQEventBus
+    /// <summary>
+    /// RabbitMQ消息总线
+    /// </summary>
+    public class RabbitMQEventBus : IMqEventBus
     {
         /// <summary>
         /// 投递消息到队列
         /// </summary>
-        /// <param name="routingKey">队列路由值</param>
-        /// <param name="message">Routing key must be shorter than 255 bytes.</param>
-        /// <param name="basicAcks">投递队列成功确认回调</param>
-        /// <param name="basicNacks">投递队列不成功确认回调</param>
+        /// <typeparam name="T">消息类型</typeparam>
+        /// <param name="routingKey">队列路由值（必须小于255 bytes）</param>
+        /// <param name="message">消息</param>
+        /// <param name="ackEvent">投递队列成功确认回调</param>
+        /// <param name="noAckEvent">投递队列不成功确认回调</param>
         /// <returns>是否成功投递到队列</returns>
-        public static bool Publish<T>(string routingKey, MessageInfo<T> message,
-            EventHandler<BasicAckEventArgs> basicAcks = null,
-            EventHandler<BasicNackEventArgs> basicNacks = null)
+        public bool Publish<T>(string routingKey, MqMessage<T> message,
+            EventHandler<MqEventBusFeedBackEventArgs> ackEvent = null,
+            EventHandler<MqEventBusFeedBackEventArgs> noAckEvent = null)
         {
             string exchangeName = routingKey;
             string queueName = routingKey;
 
             using (var channel = RabbitMQManager.Connection.CreateModel())
             {
-                channel.ExchangeDeclare(exchange: exchangeName, type: ExchangeType.Direct, durable: true, autoDelete: false, arguments: null);
+                channel.ExchangeDeclare(exchange: exchangeName, type: RabbitMQExchangeType.Direct, durable: true, autoDelete: false, arguments: null);
 
                 //指定durable:true设置消息队列为持久化队列
                 //autoDelete属性针对的是曾经有消费者订阅过但后来取消订阅了，然后该队列会被自动删除，如果一开始就没有订阅者，那么该队列一直存在
@@ -38,14 +41,28 @@ namespace Easy.Common.NetCore.MQ.RabbitMQ
                 channel.QueueBind(queue: queueName, exchange: exchangeName, routingKey: queueName);
 
                 //异步confirm方式。这两个事件要写到发生消息之前，否则不会触发
-                if (basicAcks != null)
+                if (ackEvent != null)
                 {
-                    channel.BasicAcks += basicAcks;
+                    channel.BasicAcks += (sender, e) =>
+                    {
+                        ackEvent(sender, new MqEventBusFeedBackEventArgs
+                        {
+                            DeliveryTag = e.DeliveryTag,
+                            Multiple = e.Multiple,
+                        });
+                    };
                 }
 
-                if (basicNacks != null)
+                if (noAckEvent != null)
                 {
-                    channel.BasicNacks += basicNacks;
+                    channel.BasicNacks += (sender, e) =>
+                    {
+                        noAckEvent(sender, new MqEventBusFeedBackEventArgs
+                        {
+                            DeliveryTag = e.DeliveryTag,
+                            Multiple = e.Multiple,
+                        });
+                    };
                 }
 
                 var properties = channel.CreateBasicProperties();
@@ -53,7 +70,7 @@ namespace Easy.Common.NetCore.MQ.RabbitMQ
                 properties.Persistent = true;
 
                 string messageJson = JsonConvert.SerializeObject(message);
-                var body = Encoding.UTF8.GetBytes(messageJson);
+                byte[] body = Encoding.UTF8.GetBytes(messageJson);
 
                 //先启用发布服务器确认
                 channel.ConfirmSelect();

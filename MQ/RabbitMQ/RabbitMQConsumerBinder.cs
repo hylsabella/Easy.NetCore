@@ -1,4 +1,5 @@
 ﻿using Easy.Common.NetCore.Extentions;
+using Newtonsoft.Json;
 using NLog;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -7,13 +8,19 @@ using System.Text;
 
 namespace Easy.Common.NetCore.MQ.RabbitMQ
 {
-    public class RabbitMQReceivedBinder : IMqReceivedBinder
+    /// <summary>
+    /// RabbitMQ消费者绑定器
+    /// </summary>
+    public class RabbitMQConsumerBinder : IMqConsumerBinder
     {
         private readonly static Logger logger = LogManager.GetCurrentClassLogger();
 
-        public void Bind()
+        /// <summary>
+        /// 发现并绑定消费者事件
+        /// </summary>
+        public virtual void BindConsumer()
         {
-            var consumers = MqConsumerDispatcher.FindConsumers();
+            var consumers = MqConsumerDispatcher.DiscoverConsumers();
 
             foreach (var consumer in consumers)
             {
@@ -21,16 +28,21 @@ namespace Easy.Common.NetCore.MQ.RabbitMQ
             }
         }
 
-        public void Received(MqConsumerExecutor consumerExecutor)
+        protected virtual void Received(MqConsumerExecutor consumerExecutor)
         {
+            if (consumerExecutor == null)
+            {
+                return;
+            }
+
+            string exchangeName = consumerExecutor.RouteName;
+            string queueName = consumerExecutor.RouteName;
+
             try
             {
-                string exchangeName = consumerExecutor.RouteName;
-                string queueName = consumerExecutor.RouteName;
-
                 var channel = RabbitMQManager.Connection.CreateModel();
 
-                channel.ExchangeDeclare(exchange: exchangeName, type: ExchangeType.Direct, durable: true, autoDelete: false, arguments: null);
+                channel.ExchangeDeclare(exchange: exchangeName, type: RabbitMQExchangeType.Direct, durable: true, autoDelete: false, arguments: null);
                 channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
                 channel.QueueBind(queue: queueName, exchange: exchangeName, routingKey: queueName);
 
@@ -45,6 +57,7 @@ namespace Easy.Common.NetCore.MQ.RabbitMQ
                 consumer.Received += async (sender, eventArgs) =>
                 {
                     MqConsumerExecutedResult result = null;
+                    string msgJson = string.Empty;
 
                     try
                     {
@@ -53,37 +66,48 @@ namespace Easy.Common.NetCore.MQ.RabbitMQ
                             channel.BasicAck(deliveryTag: eventArgs.DeliveryTag, multiple: false);
                         }
 
-                        var msgJson = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
+                        msgJson = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
 
                         result = await MqConsumerDispatcher.InvokeAsync(consumerExecutor, msgJson);
                     }
                     catch (Exception ex)
                     {
-                        logger.Error(ex, "调用消费者执行异常");
+                        var traceInfo = new { ConsumerExecutor = consumerExecutor, MsgJson = msgJson };
+
+                        logger.WithProperty("filename", $"RabbitMQ_{queueName}_Exception")
+                              .Error(ex, $"消费者执行异常：{JsonConvert.SerializeObject(traceInfo)}");
                     }
                     finally
                     {
+                        var traceInfo = new { ConsumerExecutor = consumerExecutor, MsgJson = msgJson };
+
                         if (result == null || !result.ReplyType.IsInDefined())
                         {
+                            logger.WithProperty("filename", $"RabbitMQ_{queueName}_Unknown")
+                                  .Trace($"消费者未回馈消息处理情况：{JsonConvert.SerializeObject(traceInfo)}");
+
                             channel.BasicNack(deliveryTag: eventArgs.DeliveryTag, multiple: false, requeue: false);
                         }
                         else
                         {
+                            logger.WithProperty("filename", $"RabbitMQ_{queueName}_{result.ReplyType.ToString()}")
+                                  .Trace($"消费者处理情况：{JsonConvert.SerializeObject(traceInfo)}");
+
                             if (result.ReplyType == MqReplyType.Ack)
                             {
-                                //发送消息确认信号，告诉rabbitmq这个消息处理成功，可以从队列清除此消息
-                                //同一个会话consumerTag是固定的名字，deliveryTag每次接收消息+1
+                                //发送确认信号，告诉MQ这个消息处理成功，可以从队列移除此消息
+                                //同一个会话consumerTag是固定的名字，deliveryTag每次接收消息会+1
                                 channel.BasicAck(deliveryTag: eventArgs.DeliveryTag, multiple: false);
                             }
                             else if (result.ReplyType == MqReplyType.Nack)
                             {
-                                //requeue会将该消息重新投递到队列头部
+                                //发送不确认信号，该消息会从队列移除（若IsRequeue设置为true，那么消息会重新投递到队列头部）
+                                //BasicNack第二个参数multiple是否应用于多消息，与BasicReject区别就是同时支持多个消息，可以nack该消费者先前接收未ack的所有消息
                                 channel.BasicNack(deliveryTag: eventArgs.DeliveryTag, multiple: false, requeue: result.IsRequeue);
                             }
                             else if (result.ReplyType == MqReplyType.Reject)
                             {
-                                //投递错误时拒绝处理。
-                                //BasicNack第二个参数multiple是否应用于多消息，与BasicReject区别就是同时支持多个消息，可以nack该消费者先前接收未ack的所有消息
+                                //发送拒绝信号，该消息会从队列清除移除（若IsRequeue设置为true，那么消息会重新投递到队列头部）
                                 channel.BasicReject(deliveryTag: eventArgs.DeliveryTag, requeue: result.IsRequeue);
                             }
                         }
@@ -94,7 +118,10 @@ namespace Easy.Common.NetCore.MQ.RabbitMQ
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "MqReceived异常");
+                logger.WithProperty("filename", $"RabbitMQReceivedBinder.Received_RabbitMQ_{queueName}_Exception")
+                      .Error(ex, $"RabbitMQReceivedBinder.Received异常：{JsonConvert.SerializeObject(consumerExecutor)}");
+
+                throw;
             }
         }
     }
