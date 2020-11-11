@@ -5,7 +5,7 @@ namespace Easy.Common.NetCore.Repository
     /// <summary>
     /// 读写数据仓储
     /// </summary>
-    public interface IRepository<T> where T : EntityBase
+    public interface IRepository<T> where T : EntityPrimary
     {
         /// <summary>
         /// 获取主键记录

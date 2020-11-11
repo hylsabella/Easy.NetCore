@@ -4,6 +4,7 @@ using Autofac.Extras.CommonServiceLocator;
 using Easy.Common.NetCore.Enums;
 using Easy.Common.NetCore.Filters;
 using Easy.Common.NetCore.IoC;
+using Easy.Common.NetCore.Security;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
@@ -76,8 +77,18 @@ namespace Easy.Common.NetCore.Startup
                 }
             });
 
-            mvcBuilder.SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
-                      .AddFluentValidation(x => { x.RunDefaultMvcValidationAfterFluentValidationExecutes = true; });
+            mvcBuilder.SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+
+            //模型验证
+            mvcBuilder.AddFluentValidation(x =>
+            {
+                //如果设置为false，那么FluentValidation是唯一执行的验证库
+                x.RunDefaultMvcValidationAfterFluentValidationExecutes = true;
+
+                ////自动注册
+                var typeInCurrAppDomain = Assembly.GetEntryAssembly().GetTypes().First();
+                x.RegisterValidatorsFromAssemblyContaining(typeInCurrAppDomain, lifetime: ServiceLifetime.Singleton);
+            });
 
             //注册gzip压缩
             services.AddResponseCompression(options =>

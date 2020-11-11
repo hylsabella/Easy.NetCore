@@ -13,7 +13,7 @@ namespace Easy.Common.NetCore.Repository
     /// <summary>
     /// Dapper读写数据仓储
     /// </summary>
-    public class SqlServerRepository<T> : IRepository<T> where T : EntityBase
+    public class SqlServerRepository<T> : IRepository<T> where T : EntityPrimary
     {
         private readonly string _tableName = typeof(T).Name;
 
@@ -149,7 +149,11 @@ namespace Easy.Common.NetCore.Repository
                                         return $"[{x.Name}] = @{x.Name}";
                                     }));
 
-            string sql = $"UPDATE [{_tableName + tableIndex}] SET {valueSql} WHERE [Id] = @Id AND [Version] = @Version";
+            bool hasVersionField = properties.Where(x => string.Equals(x.Name, "Version", StringComparison.OrdinalIgnoreCase)).Any();
+
+            string versionWhere = hasVersionField ? " AND [Version] = @Version " : string.Empty;
+
+            string sql = $"UPDATE [{_tableName + tableIndex}] SET {valueSql} WHERE [Id] = @Id {versionWhere}";
 
             using (IDbConnection connection = new SqlConnection(connectionString))
             {
@@ -228,30 +232,40 @@ namespace Easy.Common.NetCore.Repository
                 EndTime = search.EndTime,
             };
 
-            string timeSql = string.Empty;
+            var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            CheckHelper.ArrayNotHasNull(properties, "properties");
 
-            if (search.BeginTime.HasValue)
+            bool hasCreateDateField = properties.Where(x => string.Equals(x.Name, "CreateDate", StringComparison.OrdinalIgnoreCase)).Any();
+            bool hasIsDelDateField = properties.Where(x => string.Equals(x.Name, "IsDel", StringComparison.OrdinalIgnoreCase)).Any();
+
+            string timeWhere = string.Empty;
+            if (hasCreateDateField)
             {
-                timeSql += " AND [CreateDate] >= @BeginTime ";
+                if (search.BeginTime.HasValue)
+                {
+                    timeWhere += " AND [CreateDate] >= @BeginTime ";
+                }
+
+                if (search.EndTime.HasValue)
+                {
+                    timeWhere += " AND [CreateDate] < @EndTime ";
+                }
             }
 
-            if (search.EndTime.HasValue)
-            {
-                timeSql += " AND [CreateDate] < @EndTime ";
-            }
+            string isDelWhere = hasIsDelDateField ? " AND IsDel = '0' " : string.Empty;
 
             using (IDbConnection connection = new SqlConnection(connectionString))
             {
                 connection.Open();
 
-                int totalCount = connection.QuerySingleOrDefault<int>($"SELECT COUNT(*) FROM [{_tableName + tableIndex}] WHERE [IsDel] = 0 {timeSql}", param);
+                int totalCount = connection.QuerySingleOrDefault<int>($"SELECT COUNT(*) FROM [{_tableName + tableIndex}] WHERE 1 = 1{isDelWhere}{timeWhere}", param);
 
                 if (totalCount <= 0)
                 {
                     return new PageResult<T> { TotalCount = 0, Results = new List<T>() };
                 }
 
-                string sql = $"SELECT * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [Id] DESC) AS RowNumber,* FROM [{_tableName + tableIndex}] WHERE [IsDel] = 0  {timeSql}) AS Temp WHERE Temp.RowNumber > @StartIndex AND Temp.RowNumber <= @EndIndex";
+                string sql = $"SELECT * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [Id] DESC) AS RowNumber,* FROM [{_tableName + tableIndex}] WHERE 1 = 1{isDelWhere}{timeWhere}) AS Temp WHERE Temp.RowNumber > @StartIndex AND Temp.RowNumber <= @EndIndex";
 
                 var results = connection.Query<T>(sql, param).ToList();
 

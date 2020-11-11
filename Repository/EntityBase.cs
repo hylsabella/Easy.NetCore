@@ -2,10 +2,8 @@
 
 namespace Easy.Common.NetCore.Repository
 {
-    public class EntityBase
+    public class EntityBase : EntityPrimary
     {
-        public int Id { get; set; }
-
         public string Creater { get; set; }
 
         public DateTime CreateDate { get; set; } = DateTime.Now;
