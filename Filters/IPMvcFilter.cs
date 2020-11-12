@@ -34,7 +34,7 @@ namespace Easy.Common.NetCore.Filters
                 var response = context.HttpContext.Response;
 
                 //获取访问的【Controller】和【Action】名
-                this.GetControllerAndAction(request, out string controllerName, out string actionName);
+                GetControllerAndAction(request, out string controllerName, out string actionName);
 
                 //判断是否需要预防该接口
                 bool needDefend = DefendAttackContainer.DefendLimitAttackList
@@ -49,7 +49,7 @@ namespace Easy.Common.NetCore.Filters
                 }
 
                 //检测是否是攻击的请求
-                bool hasLimitAttack = this.CheckHasLimitAttack(request, controllerName, actionName);
+                bool hasLimitAttack = CheckHasLimitAttack(request, controllerName, actionName);
 
                 if (hasLimitAttack)
                 {
@@ -60,13 +60,13 @@ namespace Easy.Common.NetCore.Filters
                     response.Body.Close();
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
 
             }
         }
 
-        private void GetControllerAndAction(HttpRequest request, out string controllerName, out string actionName)
+        private static void GetControllerAndAction(HttpRequest request, out string controllerName, out string actionName)
         {
             controllerName = string.Empty;
             actionName = string.Empty;
@@ -85,7 +85,7 @@ namespace Easy.Common.NetCore.Filters
         /// <summary>
         /// 检测是否是攻击的请求
         /// </summary>
-        private bool CheckHasLimitAttack(HttpRequest request, string controllerName, string actionName)
+        private static bool CheckHasLimitAttack(HttpRequest request, string controllerName, string actionName)
         {
             if (!int.TryParse(_freqCount, out int maxCount))
             {

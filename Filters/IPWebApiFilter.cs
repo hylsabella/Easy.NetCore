@@ -45,7 +45,7 @@ namespace Easy.Common.NetCore.Filters
                 }
 
                 //检测是否是攻击的请求
-                bool hasLimitAttack = this.CheckHasLimitAttack(request, routeName);
+                bool hasLimitAttack = CheckHasLimitAttack(request, routeName);
 
                 if (hasLimitAttack)
                 {
@@ -56,7 +56,7 @@ namespace Easy.Common.NetCore.Filters
                     response.Body.Close();
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
 
             }
@@ -65,7 +65,7 @@ namespace Easy.Common.NetCore.Filters
         /// <summary>
         /// 检测是否是攻击的请求
         /// </summary>
-        private bool CheckHasLimitAttack(HttpRequest request, string routeName)
+        private static bool CheckHasLimitAttack(HttpRequest request, string routeName)
         {
             if (!int.TryParse(_freqCount, out int maxCount))
             {
