@@ -11,7 +11,7 @@
         /// <param name="messageId">消息全局唯一ID</param>
         /// <param name="replyType">消息回执类型（Ack、Nack、Reject）</param>
         /// <param name="isRequeue">若IsRequeue设置为true，那么消息会重新投递到队列头部</param>
-        public MqConsumerExecutedResult(string messageId, MqReplyType replyType, bool isRequeue)
+        public MqConsumerExecutedResult(string messageId, MqReplyType replyType, bool isRequeue = false)
         {
             this.MessageId = messageId;
             this.ReplyType = replyType;
