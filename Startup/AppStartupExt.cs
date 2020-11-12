@@ -75,15 +75,27 @@ namespace Easy.Common.NetCore.Startup
             return startup;
         }
 
+        /// <summary>
+        /// 初始化全局IoC容器
+        /// </summary>
+        public static AppStartup InitIoC(this AppStartup startup, IServiceLocator serviceLocator)
+        {
+            if (serviceLocator == null) throw new Exception("IServiceLocator对象不能为空");
+
+            EasyIocContainer.InitIocContainer(serviceLocator);
+
+            return startup;
+        }
+
         public static AppStartup RegExtraIoc(this AppStartup startup, ContainerBuilder builder = null)
         {
             if (builder == null)
             {
-                new EasyAutofac().RegExtraIoc(true);
+                new EasyAutofac().RegExtraIoc(hasExtraIocReg: true);
             }
             else
             {
-                new EasyAutofac(builder).RegExtraIoc(true);
+                new EasyAutofac(builder).RegExtraIoc(hasExtraIocReg: true);
             }
 
             return startup;
@@ -92,30 +104,9 @@ namespace Easy.Common.NetCore.Startup
         /// <summary>
         /// 初始化缓存服务
         /// </summary>
-        public static AppStartup RegRedisCache(this AppStartup startup, ContainerBuilder builder, TimeSpan? cacheExpires = null)
+        public static AppStartup RegRedisCache(this AppStartup startup, ContainerBuilder builder = null, TimeSpan? cacheExpires = null)
         {
-            RedisCache redisCache = null;
-
-            if (cacheExpires == null)
-            {
-                redisCache = new RedisCache();
-            }
-            else
-            {
-                redisCache = new RedisCache(cacheExpires.Value);
-            }
-
-            builder.Register(c => redisCache).As<IEasyCache>().SingleInstance();
-
-            return startup;
-        }
-
-        /// <summary>
-        /// 初始化缓存服务
-        /// </summary>
-        public static AppStartup RegRedisCache(this AppStartup startup, TimeSpan? cacheExpires = null)
-        {
-            if (EasyAutofac.Container != null) throw new Exception("注册Redis必须在初始化IOC容器生成之前完成！");
+            if (builder == null && EasyAutofac.Container != null) throw new Exception("注册Redis必须在初始化IOC容器生成之前完成！");
 
             RedisCache redisCache = null;
 
@@ -128,24 +119,47 @@ namespace Easy.Common.NetCore.Startup
                 redisCache = new RedisCache(cacheExpires.Value);
             }
 
-            EasyAutofac.ContainerBuilder.Register(c => redisCache).As<IEasyCache>().SingleInstance();
+            if (builder == null)
+            {
+                EasyAutofac.ContainerBuilder.Register(c => redisCache).As<IEasyCache>().SingleInstance();
+            }
+            else
+            {
+                builder.Register(c => redisCache).As<IEasyCache>().SingleInstance();
+            }
 
             return startup;
         }
 
-        public static AppStartup RegConfig(this AppStartup startup, ContainerBuilder builder, IConfiguration configuration)
+        /// <summary>
+        /// 测试缓存连接状态
+        /// </summary>
+        public static AppStartup CheckRedis(this AppStartup startup)
         {
-            if (configuration != null)
+            try
+            {
+                //测试redis是否连接成功
+                var dataBase = RedisManager.Connection.GetDatabase(0);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "连接Redis服务器失败");
+            }
+
+            return startup;
+        }
+
+
+
+        public static AppStartup RegConfig(this AppStartup startup, IConfiguration configuration, ContainerBuilder builder = null)
+        {
+            if (configuration == null) throw new Exception("配置configuration不能为空");
+
+            if (builder != null)
             {
                 builder.Register(c => configuration).As<IConfiguration>().SingleInstance();
             }
-
-            return startup;
-        }
-
-        public static AppStartup RegConfig(this AppStartup startup, IConfiguration configuration)
-        {
-            if (configuration != null)
+            else
             {
                 EasyAutofac.ContainerBuilder.Register(c => configuration).As<IConfiguration>().SingleInstance();
             }
@@ -217,18 +231,6 @@ namespace Easy.Common.NetCore.Startup
             result += Environment.NewLine;
 
             logger.Info(result);
-
-            return startup;
-        }
-
-        /// <summary>
-        /// 初始化全局IoC容器
-        /// </summary>
-        public static AppStartup InitIoC(this AppStartup startup, IServiceLocator serviceLocator)
-        {
-            if (serviceLocator == null) throw new Exception("IServiceLocator对象不能为空");
-
-            EasyIocContainer.InitIocContainer(serviceLocator);
 
             return startup;
         }

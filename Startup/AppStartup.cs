@@ -111,7 +111,7 @@ namespace Easy.Common.NetCore.Startup
                 .InitMachineConfig()
                 .InitLimitAttack(webType, assembly)
                 .InitMEF()
-                .RegConfig(builder, configuration)
+                .RegConfig(configuration, builder)
                 .RegRedisCache(builder)
                 .RegExtraIoc(builder);
         }
@@ -176,6 +176,7 @@ namespace Easy.Common.NetCore.Startup
 
             new AppStartup()
                 .InitIoC(serviceLocator)
+                .CheckRedis()
                 .Start();
         }
     }
