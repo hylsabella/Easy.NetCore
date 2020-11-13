@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition.Hosting;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 
@@ -56,9 +57,11 @@ namespace Easy.Common.NetCore.Startup
                 return startup;
             }
 
+            var assemblyDistinctList = assemblyList.Distinct();
+
             var catalog = new AggregateCatalog();
 
-            foreach (var assembly in assemblyList)
+            foreach (var assembly in assemblyDistinctList)
             {
                 catalog.Catalogs.Add(new AssemblyCatalog(assembly));
             }
@@ -80,9 +83,11 @@ namespace Easy.Common.NetCore.Startup
                 return startup;
             }
 
+            var typeDistinctList = typeList.Distinct();
+
             var catalog = new AggregateCatalog();
 
-            foreach (var type in typeList)
+            foreach (var type in typeDistinctList)
             {
                 catalog.Catalogs.Add(new TypeCatalog(type));
             }
