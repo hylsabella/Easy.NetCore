@@ -38,7 +38,7 @@ namespace Easy.Common.NetCore.IoC.Autofac
 
                 try
                 {
-                    //MEF导入初始化_autofacRegistrar变量
+                    //MEF导入初始化_autofacRegList变量
                     EasyMefContainer.Container.SatisfyImportsOnce(this);
                 }
                 catch (CompositionException ex)

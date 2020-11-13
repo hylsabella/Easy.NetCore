@@ -28,18 +28,37 @@ namespace Easy.Common.NetCore.Startup
         /// <summary>
         /// 初始化MEF容器
         /// </summary>
-        /// <param name="dirName">dll目录名称</param>
-        public static AppStartup InitMEF(this AppStartup startup, string dirName = null, Assembly assembly = null)
+        /// <param name="subDirName">dll目录名称</param>
+        public static AppStartup InitMEF(this AppStartup startup, string subDirName = "")
         {
             var catalog = new AggregateCatalog();
 
-            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dirName ?? string.Empty);
+            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, subDirName ?? string.Empty);
 
             if (!Directory.Exists(path)) throw new ArgumentException("初始化MEF目录未找到");
 
             catalog.Catalogs.Add(new DirectoryCatalog(path));
 
-            if (assembly != null)
+            var container = new CompositionContainer(catalog, true);
+
+            EasyMefContainer.InitMefContainer(container);
+
+            return startup;
+        }
+
+        /// <summary>
+        /// 初始化MEF容器
+        /// </summary>
+        public static AppStartup InitMEF(this AppStartup startup, params Assembly[] assemblyList)
+        {
+            if (assemblyList == null || assemblyList.Length <= 0)
+            {
+                return startup;
+            }
+
+            var catalog = new AggregateCatalog();
+
+            foreach (var assembly in assemblyList)
             {
                 catalog.Catalogs.Add(new AssemblyCatalog(assembly));
             }
@@ -54,18 +73,18 @@ namespace Easy.Common.NetCore.Startup
         /// <summary>
         /// 初始化MEF容器
         /// </summary>
-        public static AppStartup InitMEF(this AppStartup startup, List<Assembly> assemblyList)
+        public static AppStartup InitMEF(this AppStartup startup, params Type[] typeList)
         {
-            if (assemblyList == null || assemblyList.Count <= 0)
+            if (typeList == null || typeList.Length <= 0)
             {
                 return startup;
             }
 
             var catalog = new AggregateCatalog();
 
-            foreach (var assembly in assemblyList)
+            foreach (var type in typeList)
             {
-                catalog.Catalogs.Add(new AssemblyCatalog(assembly));
+                catalog.Catalogs.Add(new TypeCatalog(type));
             }
 
             var container = new CompositionContainer(catalog, true);
