@@ -4,7 +4,6 @@ using Autofac.Extras.CommonServiceLocator;
 using Easy.Common.NetCore.Enums;
 using Easy.Common.NetCore.Filters;
 using Easy.Common.NetCore.IoC;
-using Easy.Common.NetCore.Security;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
@@ -113,7 +112,7 @@ namespace Easy.Common.NetCore.Startup
                 .InitMEF()
                 .RegConfig(configuration, builder)
                 .RegRedisCache(builder)
-                .RegExtraIoc(builder);
+                .RegExtraIoC(builder);
         }
 
         public static void EasyConfigure(IApplicationBuilder app, IWebHostEnvironment env, IConfiguration configuration, WebType webType, bool isHttpsRedirect = false, string mvcDefaultRoute = "{controller=Home}/{action=Index}/{id?}")

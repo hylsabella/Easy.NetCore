@@ -111,7 +111,7 @@ namespace Easy.Common.NetCore.Startup
             return startup;
         }
 
-        public static AppStartup RegExtraIoc(this AppStartup startup, ContainerBuilder builder = null)
+        public static AppStartup RegExtraIoC(this AppStartup startup, ContainerBuilder builder = null)
         {
             if (builder == null)
             {
