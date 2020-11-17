@@ -21,14 +21,12 @@ namespace Easy.Common.NetCore.Filters
         public void OnException(ExceptionContext executedContext)
         {
             executedContext.ExceptionHandled = true;
+            bool isAjaxRequest = executedContext.HttpContext.Request.IsAjaxRequest();
 
-            if (executedContext.HttpContext.Request.IsAjaxRequest())
+            if (isAjaxRequest && executedContext.HttpContext.Request.Query["NeedLayout"] == "false")
             {
-                if (executedContext.HttpContext.Request.Query["NeedLayout"] == "false")
-                {
-                    //如果是不需要母版页的ajax请求获取页面Html内容，不做处理，让ajax的error function()来处理
-                    return;
-                }
+                //如果是不需要母版页的ajax请求获取页面Html内容，不做处理，让ajax的error function()来处理
+                return;
             }
 
             SysApiResult<string> result;
@@ -48,7 +46,7 @@ namespace Easy.Common.NetCore.Filters
                 result = new SysApiResult<string>() { Status = SysApiStatus.异常, Message = "服务器繁忙，请稍候再试" };
             }
 
-            if (executedContext.HttpContext.Request.IsAjaxRequest())
+            if (isAjaxRequest)
             {
                 executedContext.Result = new JsonNetResult(value: result);
             }
