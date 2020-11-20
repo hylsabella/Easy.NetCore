@@ -33,7 +33,7 @@ namespace Easy.Common.NetCore.Filters
 
             if (executedContext.Exception is FException)
             {
-                result = new SysApiResult<string>() { Status = SysApiStatus.错误, Message = executedContext.Exception.Message };
+                result = new SysApiResult<string>() { Status = SysApiStatus.失败, Message = executedContext.Exception.Message };
             }
             else if (executedContext.Exception is AntiforgeryValidationException)
             {
