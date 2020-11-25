@@ -2,3 +2,6 @@
 
 # IDE0063: 使用简单的 "using" 语句
 dotnet_diagnostic.IDE0063.severity = none
+
+# AD0001: 分析器故障
+dotnet_diagnostic.AD0001.severity = none
