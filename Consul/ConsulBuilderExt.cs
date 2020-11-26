@@ -40,7 +40,7 @@ namespace Easy.Common.NetCore.Consul
                 },
             };
 
-            var consulClient = new ConsulClient(x => new Uri(consulOption.ConsulAddress));
+            var consulClient = new ConsulClient(x => x.Address = new Uri(consulOption.ConsulAddress));
 
             //先取消上次注册，重新注册
             consulClient.Agent.ServiceDeregister(registration.ID).Wait();
