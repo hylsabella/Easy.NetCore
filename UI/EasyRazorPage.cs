@@ -1,6 +1,7 @@
 ﻿using Easy.Common.NetCore.Security;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Newtonsoft.Json;
+using System;
 using System.Security.Claims;
 
 namespace Easy.Common.NetCore.UI
@@ -15,7 +16,7 @@ namespace Easy.Common.NetCore.UI
         /// </summary>
         public bool IsNeedLayout()
         {
-            if (this.Context.Request.Query["NeedLayout"] == "false")
+            if (string.Equals(this.Context.Request.Query["NeedLayout"], "false", StringComparison.OrdinalIgnoreCase))
             {
                 Layout = "";
                 return false;
