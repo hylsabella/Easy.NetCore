@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Easy.Common.NetCore.Consul
 {
@@ -23,6 +24,11 @@ namespace Easy.Common.NetCore.Consul
         /// 服务健康检查地址
         /// </summary>
         public string ServiceHealthCheck { get; set; }
+
+        /// <summary>
+        /// 健康检查时间间隔
+        /// </summary>
+        public TimeSpan? ServiceHealthCheckInterval { get; set; }
 
         /// <summary>
         /// 服务备注信息

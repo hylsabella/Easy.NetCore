@@ -1,4 +1,5 @@
 ﻿using Consul;
+using Easy.Common.NetCore.Startup;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -6,13 +7,10 @@ using System;
 
 namespace Easy.Common.NetCore.Consul
 {
-    public static class ConsulBuilderExtension
+    public static class ConsulBuilderExt
     {
-        public static IApplicationBuilder RegisterConsul(this IApplicationBuilder app, ConsulOption consulOption)
+        public static AppStartup RegisterConsul(this AppStartup startup, ConsulOption consulOption, IApplicationBuilder app = null)
         {
-            var lifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
-            if (lifetime == null) throw new ArgumentNullException("lifetime不能为空！");
-
             if (consulOption == null) throw new ArgumentNullException("consulOption不能为空！");
             if (string.IsNullOrWhiteSpace(consulOption.ServiceName) ||
                 string.IsNullOrWhiteSpace(consulOption.ServiceIP) ||
@@ -35,7 +33,7 @@ namespace Easy.Common.NetCore.Consul
                 {
                     DeregisterCriticalServiceAfter = TimeSpan.FromSeconds(5),   //服务启动多久后注册
                     Timeout = TimeSpan.FromSeconds(5),
-                    Interval = TimeSpan.FromSeconds(10),    //健康检查时间间隔
+                    Interval = consulOption.ServiceHealthCheckInterval ?? TimeSpan.FromSeconds(10), //健康检查时间间隔
                     HTTP = !string.IsNullOrWhiteSpace(consulOption.ServiceHealthCheck) ? consulOption.ServiceHealthCheck : null, //健康检查地址
                     TCP = string.IsNullOrWhiteSpace(consulOption.ServiceHealthCheck) ? $"{consulOption.ServiceIP}:{consulOption.ServicePort}" : null//TCP检测健康检查，如果开启了HTTP检测则关闭此项
                 },
@@ -50,12 +48,25 @@ namespace Easy.Common.NetCore.Consul
             consulClient.Agent.ServiceRegister(registration).Wait();
 
             //应用程序终止时，服务取消注册
-            lifetime.ApplicationStopping.Register(() =>
+            if (app != null)
             {
-                consulClient.Agent.ServiceDeregister(registration.ID).Wait();
-            });
+                var lifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
+                if (lifetime == null) throw new ArgumentNullException("lifetime不能为空！");
 
-            return app;
+                lifetime.ApplicationStopping.Register(() =>
+                {
+                    consulClient.Agent.ServiceDeregister(registration.ID).Wait();
+                });
+            }
+            else
+            {
+                AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
+                {
+                    consulClient.Agent.ServiceDeregister(registration.ID).Wait();
+                };
+            }
+
+            return startup;
         }
     }
 }

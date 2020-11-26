@@ -17,6 +17,7 @@ namespace Easy.Common.NetCore.UI
         public int length { get; set; } = 30;
 
         private DateTime? _beginTime;
+
         /// <summary>
         /// 开始时间（包括该时间点）
         /// </summary>
@@ -56,6 +57,7 @@ namespace Easy.Common.NetCore.UI
         }
 
         private DateTime? _endTime;
+
         /// <summary>
         /// 结束时间（不包括该时间点）
         /// </summary>
