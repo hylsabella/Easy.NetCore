@@ -6,6 +6,11 @@ namespace Easy.Common.NetCore.Consul
     public class ConsulOption
     {
         /// <summary>
+        /// 全局唯一注册Id
+        /// </summary>
+        public string RegId { get; set; }
+
+        /// <summary>
         /// 服务名称
         /// </summary>
         public string ServiceName { get; set; }

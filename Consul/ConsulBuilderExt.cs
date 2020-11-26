@@ -12,7 +12,8 @@ namespace Easy.Common.NetCore.Consul
         public static AppStartup RegisterConsul(this AppStartup startup, ConsulOption consulOption, IApplicationBuilder app = null)
         {
             if (consulOption == null) throw new ArgumentNullException("consulOption不能为空！");
-            if (string.IsNullOrWhiteSpace(consulOption.ServiceName) ||
+            if (string.IsNullOrWhiteSpace(consulOption.RegId) ||
+                string.IsNullOrWhiteSpace(consulOption.ServiceName) ||
                 string.IsNullOrWhiteSpace(consulOption.ServiceIP) ||
                 string.IsNullOrWhiteSpace(consulOption.ServiceHealthCheck) ||
                 string.IsNullOrWhiteSpace(consulOption.ConsulAddress) ||
@@ -23,7 +24,7 @@ namespace Easy.Common.NetCore.Consul
 
             var registration = new AgentServiceRegistration()
             {
-                ID = Guid.NewGuid().ToString(),
+                ID = consulOption.RegId,
                 Name = consulOption.ServiceName,    // 服务名
                 Address = consulOption.ServiceIP,   // 服务绑定IP
                 Port = consulOption.ServicePort,    // 服务绑定端口
@@ -39,10 +40,10 @@ namespace Easy.Common.NetCore.Consul
                 },
             };
 
-            var consulClient = new ConsulClient(x =>
-            {
-                x.Address = new Uri(consulOption.ConsulAddress);
-            });
+            var consulClient = new ConsulClient(x => new Uri(consulOption.ConsulAddress));
+
+            //先取消上次注册，重新注册
+            consulClient.Agent.ServiceDeregister(registration.ID).Wait();
 
             //服务注册
             consulClient.Agent.ServiceRegister(registration).Wait();
