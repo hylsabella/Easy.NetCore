@@ -9,12 +9,13 @@ namespace Easy.Common.NetCore.MQ
     /// </summary>
     public class MqConsumerExecutor
     {
-        public MqConsumerExecutor(string routeName, ushort prefetchCount, uint prefetchSize, bool autoAck, TypeInfo typeInfo, MethodInfo methodInfo, IList<ParameterDescriptor> parameters)
+        public MqConsumerExecutor(string routeName, ushort prefetchCount, uint prefetchSize, bool autoAck, uint parallelNum, TypeInfo typeInfo, MethodInfo methodInfo, IList<ParameterDescriptor> parameters)
         {
             this.RouteName = routeName;
             this.PrefetchCount = prefetchCount;
             this.PrefetchSize = prefetchSize;
             this.AutoAck = autoAck;
+            this.ParallelNum = parallelNum;
             this.TypeInfo = typeInfo;
             this.MethodInfo = methodInfo;
             this.Parameters = parameters;
@@ -41,6 +42,11 @@ namespace Easy.Common.NetCore.MQ
         /// 如果为false，那么会执行PrefetchCount和PrefetchSize参数的配置
         /// </summary>
         public bool AutoAck { get; }
+
+        /// <summary>
+        /// 消费者并行数，默认为1（即：创建指定数目的相同消费者，解决消费吞吐量问题）
+        /// </summary>
+        public uint ParallelNum { get; }
 
         /// <summary>
         /// 消费者类型信息
@@ -79,12 +85,18 @@ namespace Easy.Common.NetCore.MQ
                 return false;
             }
 
-            return string.Equals(x.RouteName, y.RouteName) && x.MethodInfo.Equals(y.MethodInfo) && x.TypeInfo.Equals(y.TypeInfo);
+            return string.Equals(x.RouteName, y.RouteName) &&
+                                 x.ParallelNum == y.ParallelNum &&
+                                 x.MethodInfo.Equals(y.MethodInfo) &&
+                                 x.TypeInfo.Equals(y.TypeInfo);
         }
 
         public int GetHashCode(MqConsumerExecutor obj)
         {
-            return obj.RouteName.GetHashCode() ^ obj.MethodInfo.GetHashCode() ^ obj.TypeInfo.GetHashCode();
+            return obj.RouteName.GetHashCode() ^
+                   obj.ParallelNum.GetHashCode() ^
+                   obj.MethodInfo.GetHashCode() ^
+                   obj.TypeInfo.GetHashCode();
         }
     }
 }
