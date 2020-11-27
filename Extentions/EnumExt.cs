@@ -52,7 +52,6 @@ namespace Easy.Common.NetCore.Extentions
                 dic.Add("全部", -1);
             }
 
-
             foreach (var value in enumType.GetEnumValues())
             {
                 string enumName = Enum.GetName(enumType, value);
@@ -96,7 +95,7 @@ namespace Easy.Common.NetCore.Extentions
                 list.Insert(0, new SelectListItem { Text = "全部", Value = "-1" });
             }
 
-            if (null != selectedValue)
+            if (selectedValue != null)
             {
                 var find = list.Where(i => (Convert.ToInt32(selectedValue).ToString() == i.Value));
 

@@ -94,7 +94,6 @@ namespace Easy.Common.NetCore.Helpers
                 }
                 catch (Exception)
                 {
-
                 }
 
                 //解析出来了表索引（0-9之间）

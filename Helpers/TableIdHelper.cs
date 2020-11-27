@@ -73,7 +73,7 @@ namespace Easy.Common.NetCore.Helpers
             }
 
             //计算出实际的table id
-            int yuShu = (int)userId % 10;
+            int yuShu = userId % 10;
             int tableId = 10 * index + yuShu;
 
             return tableId;

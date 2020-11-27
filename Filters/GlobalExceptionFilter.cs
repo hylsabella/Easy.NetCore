@@ -37,7 +37,6 @@ namespace Easy.Common.NetCore.Filters
             }
             else if (executedContext.Exception is AntiforgeryValidationException)
             {
-                logger.Error(executedContext.Exception, "全局异常捕获");
                 result = new SysApiResult<string>() { Status = SysApiStatus.拦截, Message = "服务器繁忙，请重新登陆。" };
             }
             else
