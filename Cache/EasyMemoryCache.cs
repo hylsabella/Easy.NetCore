@@ -1,20 +1,34 @@
 ﻿using Easy.Common.NetCore.Helpers;
+using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
-using StackExchange.Redis;
+using NLog;
 using System;
 
-namespace Easy.Common.NetCore.Cache.Redis
+namespace Easy.Common.NetCore.Cache
 {
-    public partial class RedisCache : IEasyCache
+    public class EasyMemoryCache
     {
-        #region Get 缓存
+        private static Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly MemoryCache _memoryCache = new MemoryCache(new MemoryCacheOptions());
+
+        public TimeSpan Expires { get; }
+
+        public EasyMemoryCache()
+        {
+            this.Expires = TimeSpan.FromMinutes(60);
+        }
+
+        public EasyMemoryCache(TimeSpan expires)
+        {
+            this.Expires = expires;
+        }
 
         /// <summary>
         /// 获取缓存。如果缓存不存在，返回值为 default(T)
         /// </summary>
-        public T Get<T>(string key, int db = 0)
+        public T Get<T>(string key)
         {
-            return Get<T>(key, null, db: db);
+            return Get<T>(key, null);
         }
 
         /// <summary>
@@ -23,15 +37,15 @@ namespace Easy.Common.NetCore.Cache.Redis
         /// <param name="key">缓存Key</param>
         /// <param name="createFunc">数据来源方法。如果缓存不存在，执行该方法，并将值存入缓存中；如果该方法对象为null或者执行结果为null，值不存入缓存</param>
         /// <param name="isExpired">是否要过期</param>
-        public T Get<T>(string key, Func<T> createFunc, bool isExpired = true, int db = 0)
+        public T Get<T>(string key, Func<T> createFunc, bool isExpired = true)
         {
             if (isExpired)
             {
-                return Get(key, createFunc, Expires, db);
+                return Get(key, createFunc, Expires);
             }
             else
             {
-                return Get(key, createFunc, TimeSpan.Zero, db);
+                return Get(key, createFunc, TimeSpan.Zero);
             }
         }
 
@@ -41,31 +55,33 @@ namespace Easy.Common.NetCore.Cache.Redis
         /// <param name="key">缓存Key</param>
         /// <param name="createFunc">数据来源方法。如果缓存不存在，执行该方法，并将值存入缓存中；如果该方法对象为null或者执行结果为null，值不存入缓存</param>
         /// <param name="expires">过期时间.TimeSpan.Zero：表示不会过期</param>
-        public T Get<T>(string key, Func<T> createFunc, TimeSpan expires, int db = 0)
+        public T Get<T>(string key, Func<T> createFunc, TimeSpan expires)
         {
-            //保证redis挂了不影响正常逻辑，还是会读数据库
+            //保证MemoryCache挂了不影响正常逻辑，还是会读数据库
             CheckHelper.NotEmpty(key, "key");
 
-            RedisValue cacheData = RedisValue.Null;
-            IDatabase redisdb = null;
+            string cacheData;
 
             try
             {
-                redisdb = RedisManager.Connection.GetDatabase(db);
-
-                cacheData = redisdb.StringGet(key);
+                cacheData = _memoryCache.Get<string>(key);
             }
             catch (Exception ex)
             {
-                logger.Error(ex, $"Get.RedisCache挂了，key:{key}");
+                logger.Error(ex, $"Get.MemoryCache挂了，key:{key}");
 
-                var memoryCache = new EasyMemoryCache(expires);
+                T defaultData = default;
 
-                return memoryCache.Get(key, createFunc, expires);
+                if (createFunc != null)
+                {
+                    defaultData = createFunc();
+                }
+
+                return defaultData;
             }
 
             //缓存中拿到值
-            if (!cacheData.IsNullOrEmpty)
+            if (!string.IsNullOrWhiteSpace(cacheData))
             {
                 return JsonConvert.DeserializeObject<T>(cacheData);
             }
@@ -84,31 +100,27 @@ namespace Easy.Common.NetCore.Cache.Redis
                 return data;
             }
 
-            //保证redis挂了不影响正常逻辑
+            //保证MemoryCache挂了不影响正常逻辑
             try
             {
                 string jsonData = JsonConvert.SerializeObject(data);
 
                 if (expires == TimeSpan.Zero)
                 {
-                    redisdb.StringSet(key, jsonData);
+                    _memoryCache.Set(key, jsonData);
                 }
                 else
                 {
-                    redisdb.StringSet(key, jsonData, expires);
+                    _memoryCache.Set(key, jsonData, expires);
                 }
             }
             catch (Exception ex)
             {
-                logger.Error(ex, $"Get.StringSet.RedisCache挂了，key:{key}");
+                logger.Error(ex, $"Get.StringSet.MemoryCache挂了，key:{key}");
             }
 
             return data;
         }
-
-        #endregion
-
-        #region Set 缓存
 
         /// <summary>
         /// 设置缓存
@@ -117,15 +129,15 @@ namespace Easy.Common.NetCore.Cache.Redis
         /// <param name="data">数据</param>
         /// <param name="isExpired">是否要过期</param>
         /// <returns>是否已存入缓存</returns>
-        public bool Set<T>(string key, T data, bool isExpired = true, int db = 0)
+        public bool Set<T>(string key, T data, bool isExpired = true)
         {
             if (isExpired)
             {
-                return Set(key, data, this.Expires, db);
+                return Set(key, data, this.Expires);
             }
             else
             {
-                return Set(key, data, TimeSpan.Zero, db);
+                return Set(key, data, TimeSpan.Zero);
             }
         }
 
@@ -136,7 +148,7 @@ namespace Easy.Common.NetCore.Cache.Redis
         /// <param name="data">数据</param>
         /// <param name="expires">过期时间.TimeSpan.Zero：表示不会过期</param>
         /// <returns>是否已存入缓存</returns>
-        public bool Set<T>(string key, T data, TimeSpan expires, int db = 0)
+        public bool Set<T>(string key, T data, TimeSpan expires)
         {
             CheckHelper.NotEmpty(key, "key");
 
@@ -154,71 +166,42 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             try
             {
-                var redisdb = RedisManager.Connection.GetDatabase(db);
-
                 string jsonData = JsonConvert.SerializeObject(data);
 
-                return redisdb.StringSet(key, jsonData, thisExpires);
+                if (thisExpires.HasValue)
+                {
+                    var result = _memoryCache.Set(key, jsonData, thisExpires.Value);
+                    return !string.IsNullOrWhiteSpace(result);
+                }
+                else
+                {
+                    var result = _memoryCache.Set(key, jsonData);
+                    return !string.IsNullOrWhiteSpace(result);
+                }
             }
             catch (Exception ex)
             {
-                logger.Error(ex, $"Set.RedisCache挂了，key:{key}");
+                logger.Error(ex, $"Set.MemoryCache挂了，key:{key}");
 
-                var memoryCache = new EasyMemoryCache(expires);
-
-                return memoryCache.Set(key, data, expires);
+                return false;
             }
-        }
-
-        #endregion
-
-        #region 加减值
-
-        /// <summary>
-        /// 增加值
-        /// </summary>
-        /// <param name="key">缓存Key</param>
-        /// <param name="value">增量</param>
-        /// <param name="expires">过期时间。【null】和【TimeSpan.Zero】表示不会过期</param>
-        public long Increment(string key, long value = 1, TimeSpan? expires = null, int db = 0)
-        {
-            CheckHelper.NotEmpty(key, "key");
-
-            var redisdb = RedisManager.Connection.GetDatabase(db);
-
-            long result = redisdb.StringIncrement(key, value);
-
-            if (expires.HasValue && expires != TimeSpan.Zero)
-            {
-                redisdb.KeyExpire(key, expires.Value);
-            }
-
-            return result;
         }
 
         /// <summary>
-        /// 减少值
+        /// 移除指定Key的数据
         /// </summary>
-        /// <param name="key">缓存Key</param>
-        /// <param name="value">减量</param>
-        /// <param name="expires">过期时间。【null】和【TimeSpan.Zero】表示不会过期</param>
-        /// <returns>减少后的值</returns>
-        public long Decrement(string key, long value = 1, TimeSpan? expires = null, int db = 0)
+        public void Remove(string key)
         {
             CheckHelper.NotEmpty(key, "key");
 
-            var redisdb = RedisManager.Connection.GetDatabase(db);
-
-            long result = redisdb.StringDecrement(key, value);
-
-            if (expires.HasValue && expires != TimeSpan.Zero)
+            try
             {
-                redisdb.KeyExpire(key, expires.Value);
+                _memoryCache.Remove(key);
             }
-
-            return result;
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Remove.MemoryCache挂了");
+            }
         }
-
-        #endregion
     }
 }

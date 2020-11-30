@@ -1,5 +1,6 @@
 ﻿using Easy.Common.NetCore.Extentions;
 using Easy.Common.NetCore.Helpers;
+using NLog;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,8 @@ namespace Easy.Common.NetCore.Cache.Redis
 {
     public partial class RedisCache : IEasyCache
     {
+        private static Logger logger = LogManager.GetCurrentClassLogger();
+
         public TimeSpan Expires { get; }
 
         public RedisCache()
@@ -52,9 +55,20 @@ namespace Easy.Common.NetCore.Cache.Redis
         {
             CheckHelper.NotEmpty(key, "key");
 
-            var redisdb = RedisManager.Connection.GetDatabase(db);
+            try
+            {
+                var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            redisdb.KeyDelete(key);
+                redisdb.KeyDelete(key);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Remove.RedisCache挂了");
+
+                var memoryCache = new EasyMemoryCache();
+
+                memoryCache.Remove(key);
+            }
         }
 
         /// <summary>
