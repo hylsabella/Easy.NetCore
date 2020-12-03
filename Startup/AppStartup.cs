@@ -84,7 +84,7 @@ namespace Easy.Common.NetCore.Startup
                 //如果设置为false，那么FluentValidation是唯一执行的验证库
                 x.RunDefaultMvcValidationAfterFluentValidationExecutes = true;
 
-                ////自动注册
+                //自动注册
                 var typeInCurrAppDomain = Assembly.GetEntryAssembly().GetTypes().First();
                 x.RegisterValidatorsFromAssemblyContaining(typeInCurrAppDomain, lifetime: ServiceLifetime.Singleton);
             });

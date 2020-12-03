@@ -1,7 +1,6 @@
 ﻿using Autofac;
 using Easy.Common.NetCore.Extentions;
 using System;
-using System.Collections.Generic;
 
 namespace Easy.Common.NetCore.MQ
 {
@@ -11,11 +10,6 @@ namespace Easy.Common.NetCore.MQ
         {
             var allTypes = AppDomain.CurrentDomain.GetAllTypes();
 
-            Register<IMqConsumer>(allTypes, builder);
-        }
-
-        private static void Register<T>(IEnumerable<Type> allTypes, ContainerBuilder builder) where T : IMqConsumer
-        {
             foreach (Type type in allTypes)
             {
                 bool isSubClass = typeof(IMqConsumer).IsAssignableFrom(type);

@@ -41,9 +41,14 @@ namespace Easy.Common.NetCore.IoC.Autofac
 
                     Type interfaceType = type.GetInterface(interfaceName);
 
-                    if (interfaceType == null) throw new Exception($"约定自动注册{typeName}必须继承接口{interfaceName}");
-
-                    builder.RegisterType(type).As(interfaceType).SingleInstance();
+                    if (interfaceType != null)
+                    {
+                        builder.RegisterType(type).As(interfaceType).SingleInstance();
+                    }
+                    else
+                    {
+                        builder.RegisterType(type).SingleInstance();
+                    }
                 }
             }
         }

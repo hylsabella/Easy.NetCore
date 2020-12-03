@@ -19,7 +19,6 @@ namespace Easy.Common.NetCore.Repository
         {
             if (string.IsNullOrWhiteSpace(connectionStringName)) throw new Exception($"数据库连接名称不能为空，参数connectionStringName");
 
-
             string connectionString = _configuration.GetConnectionString(connectionStringName) ?? string.Empty;
             if (string.IsNullOrWhiteSpace(connectionString)) throw new Exception($"尚未配置数据库{connectionStringName}连接字符串！");
 

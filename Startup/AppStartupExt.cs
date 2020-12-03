@@ -130,7 +130,7 @@ namespace Easy.Common.NetCore.Startup
         /// </summary>
         public static AppStartup RegRedisCache(this AppStartup startup, ContainerBuilder builder = null, TimeSpan? cacheExpires = null)
         {
-            if (builder == null && EasyAutofac.Container != null) throw new Exception("注册Redis必须在初始化IOC容器生成之前完成！");
+            if (builder == null && EasyIocContainer.Container != null) throw new Exception("注册Redis必须在初始化IOC容器生成之前完成！");
 
             RedisCache redisCache = null;
 
@@ -160,6 +160,8 @@ namespace Easy.Common.NetCore.Startup
         /// </summary>
         public static AppStartup CheckRedis(this AppStartup startup)
         {
+            if (EasyIocContainer.Container == null) throw new Exception("CheckRedis必须在IOC容器生成后执行！");
+
             try
             {
                 //测试redis是否连接成功
@@ -205,7 +207,7 @@ namespace Easy.Common.NetCore.Startup
         /// </summary>
         public static AppStartup BindMqConsumer(this AppStartup startup)
         {
-            if (EasyAutofac.Container == null) throw new Exception("初始化MQ消费者事件绑定必须在IOC容器生成后执行！");
+            if (EasyIocContainer.Container == null) throw new Exception("初始化MQ消费者事件绑定必须在IOC容器生成后执行！");
 
             var binder = EasyIocContainer.GetInstance<IMqConsumerBinder>();
 
