@@ -57,6 +57,7 @@ namespace Easy.Common.NetCore.Startup
             var mvcBuilder = services.AddMvc(options =>
             {
                 options.Filters.Add<GlobalExceptionFilter>();
+                options.Filters.Add<ModelValidatorFilter>();
 
                 if (webType == WebType.Mvc)
                 {
@@ -115,7 +116,7 @@ namespace Easy.Common.NetCore.Startup
                 .RegExtraIoC(builder);
         }
 
-        public static void EasyConfigure(IApplicationBuilder app, IWebHostEnvironment env, IConfiguration configuration, WebType webType, bool isHttpsRedirect = false, string mvcDefaultRoute = "{controller=Home}/{action=Index}/{id?}")
+        public static void EasyConfigure(IApplicationBuilder app, IWebHostEnvironment env, IConfiguration configuration, WebType webType, bool isHttpsRedirect = false, string mvcDefaultRoute = "{controller=Home}/{action=Index}/{id?}", string webApiName = "")
         {
             if (env.IsDevelopment())
             {
@@ -163,7 +164,7 @@ namespace Easy.Common.NetCore.Startup
                 {
                     endpoints.MapGet("/", async context =>
                     {
-                        await context.Response.WriteAsync("WebApi is OK!");
+                        await context.Response.WriteAsync($"WebApi is OK! {webApiName}");
                     });
 
                     endpoints.MapControllers();
