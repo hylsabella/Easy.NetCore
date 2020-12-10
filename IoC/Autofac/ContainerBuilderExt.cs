@@ -19,11 +19,11 @@ namespace Easy.Common.NetCore.IoC.Autofac
             //注册范型仓储
             if (dataBaseType == DataBaseType.SqlServer)
             {
-                builder.RegisterGeneric(typeof(SqlServerRepository<>)).As(typeof(IRepository<>)).InstancePerLifetimeScope();
+                builder.RegisterGeneric(typeof(SqlServerRepository<>)).As(typeof(IRepository<>)).PropertiesAutowired().InstancePerLifetimeScope();
             }
             else if (dataBaseType == DataBaseType.PostgreSQL)
             {
-                builder.RegisterGeneric(typeof(PgSqlRepository<>)).As(typeof(IRepository<>)).InstancePerLifetimeScope();
+                builder.RegisterGeneric(typeof(PgSqlRepository<>)).As(typeof(IRepository<>)).PropertiesAutowired().InstancePerLifetimeScope();
             }
 
             var allTypes = AppDomain.CurrentDomain.GetAllTypes();
@@ -43,12 +43,19 @@ namespace Easy.Common.NetCore.IoC.Autofac
 
                     if (interfaceType != null)
                     {
-                        builder.RegisterType(type).As(interfaceType).SingleInstance();
+                        builder.RegisterType(type).As(interfaceType).PropertiesAutowired().SingleInstance();
                     }
                     else
                     {
-                        builder.RegisterType(type).SingleInstance();
+                        builder.RegisterType(type).PropertiesAutowired().SingleInstance();
                     }
+                }
+
+                bool isSubClass = typeof(Microsoft.AspNetCore.Mvc.ControllerBase).IsAssignableFrom(type);
+
+                if (isSubClass && !type.Assembly.FullName.Contains("Microsoft.AspNetCore", StringComparison.OrdinalIgnoreCase))
+                {
+                    builder.RegisterType(type).PropertiesAutowired();
                 }
             }
         }

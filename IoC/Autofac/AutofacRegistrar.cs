@@ -18,9 +18,9 @@ namespace Easy.Common.NetCore.IoC.Autofac
         public void Register(ContainerBuilder builder)
         {
             builder.Register(c => new LogInterceptor());
-            builder.RegisterType<CookieAuthSvc>().As<ICookieAuthSvc>().SingleInstance();
-            builder.RegisterType<TokenSvc>().As<ITokenSvc>().SingleInstance();
-            builder.RegisterType<UserTreeSvc>().As<IUserTreeSvc>().SingleInstance();
+            builder.RegisterType<CookieAuthSvc>().As<ICookieAuthSvc>().PropertiesAutowired().SingleInstance();
+            builder.RegisterType<TokenSvc>().As<ITokenSvc>().PropertiesAutowired().SingleInstance();
+            builder.RegisterType<UserTreeSvc>().As<IUserTreeSvc>().PropertiesAutowired().SingleInstance();
         }
     }
 }

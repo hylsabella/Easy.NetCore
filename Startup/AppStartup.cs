@@ -75,7 +75,8 @@ namespace Easy.Common.NetCore.Startup
                         options.Filters.Add(filter);
                     }
                 }
-            });
+            })
+            .AddControllersAsServices();//注册Controllers到IOC
 
             mvcBuilder.SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
 

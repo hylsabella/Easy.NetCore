@@ -145,11 +145,11 @@ namespace Easy.Common.NetCore.Startup
 
             if (builder == null)
             {
-                EasyAutofac.ContainerBuilder.Register(c => redisCache).As<IEasyCache>().SingleInstance();
+                EasyAutofac.ContainerBuilder.Register(c => redisCache).As<IEasyCache>().PropertiesAutowired().SingleInstance();
             }
             else
             {
-                builder.Register(c => redisCache).As<IEasyCache>().SingleInstance();
+                builder.Register(c => redisCache).As<IEasyCache>().PropertiesAutowired().SingleInstance();
             }
 
             return startup;
@@ -175,19 +175,17 @@ namespace Easy.Common.NetCore.Startup
             return startup;
         }
 
-
-
         public static AppStartup RegConfig(this AppStartup startup, IConfiguration configuration, ContainerBuilder builder = null)
         {
             if (configuration == null) throw new Exception("配置configuration不能为空");
 
             if (builder != null)
             {
-                builder.Register(c => configuration).As<IConfiguration>().SingleInstance();
+                builder.Register(c => configuration).As<IConfiguration>().PropertiesAutowired().SingleInstance();
             }
             else
             {
-                EasyAutofac.ContainerBuilder.Register(c => configuration).As<IConfiguration>().SingleInstance();
+                EasyAutofac.ContainerBuilder.Register(c => configuration).As<IConfiguration>().PropertiesAutowired().SingleInstance();
             }
 
             return startup;
