@@ -19,7 +19,7 @@ namespace Easy.Common.NetCore.MQ
                     continue;
                 }
 
-                builder.RegisterType(type).Named<IMqConsumer>(type.Name).As<IMqConsumer>();
+                builder.RegisterType(type).Named<IMqConsumer>(type.Name).As<IMqConsumer>().PropertiesAutowired();
             }
         }
     }
