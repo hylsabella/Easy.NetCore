@@ -29,7 +29,7 @@ namespace Easy.Common.NetCore.MQ.RabbitMQ
                                 //重新建立连接前，先释放之前的连接对象
                                 if (_connection != null)
                                 {
-                                    _connection.Close();
+                                    _connection.Dispose();
                                 }
 
                                 string hostName = ConfigurationManager.AppSettings["RabbitMQ.HostName"];
