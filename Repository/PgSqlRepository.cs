@@ -54,13 +54,14 @@ namespace Easy.Common.NetCore.Repository
             var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
             CheckHelper.ArrayNotHasNull(properties, "properties");
 
+            var orderByProperties = properties.OrderBy(x => x.Name, StringComparer.Ordinal).ToArray();
 
             //排除主键Id字段（数据库自增）
-            string nameSql = string.Join(",", properties.Where(x => !string.Equals(x.Name, "Id", StringComparison.OrdinalIgnoreCase))
-                                   .Select(x => $"{x.Name}").OrderBy(x => x));
+            string nameSql = string.Join(",", orderByProperties.Where(x => !string.Equals(x.Name, "Id", StringComparison.OrdinalIgnoreCase))
+                                   .Select(x => $"{x.Name}"));
 
-            string valueSql = string.Join(",", properties.Where(x => !string.Equals(x.Name, "Id", StringComparison.OrdinalIgnoreCase))
-                                   .Select(x => $"@{x.Name}").OrderBy(x => x));
+            string valueSql = string.Join(",", orderByProperties.Where(x => !string.Equals(x.Name, "Id", StringComparison.OrdinalIgnoreCase))
+                                   .Select(x => $"@{x.Name}"));
 
             string sql = $"INSERT INTO public.{_tableName + tableIndex}({nameSql}) VALUES({valueSql}) RETURNING id";
 
@@ -92,13 +93,14 @@ namespace Easy.Common.NetCore.Repository
             var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
             CheckHelper.ArrayNotHasNull(properties, "properties");
 
+            var orderByProperties = properties.OrderBy(x => x.Name, StringComparer.Ordinal).ToArray();
 
             //排除主键Id字段（数据库自增）
-            string nameSql = string.Join(",", properties.Where(x => !string.Equals(x.Name, "Id", StringComparison.OrdinalIgnoreCase))
-                                   .Select(x => $"{x.Name}").OrderBy(x => x));
+            string nameSql = string.Join(",", orderByProperties.Where(x => !string.Equals(x.Name, "Id", StringComparison.OrdinalIgnoreCase))
+                                   .Select(x => $"{x.Name}"));
 
-            string valueSql = string.Join(",", properties.Where(x => !string.Equals(x.Name, "Id", StringComparison.OrdinalIgnoreCase))
-                                    .Select(x => $"@{x.Name}").OrderBy(x => x));
+            string valueSql = string.Join(",", orderByProperties.Where(x => !string.Equals(x.Name, "Id", StringComparison.OrdinalIgnoreCase))
+                                    .Select(x => $"@{x.Name}"));
 
             string sql = $"INSERT INTO public.{_tableName + tableIndex}({nameSql}) VALUES({valueSql})";
 
