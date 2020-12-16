@@ -1,8 +1,9 @@
 ﻿using Easy.Common.NetCore.Helpers;
+using Easy.Common.NetCore.IoC;
 using Easy.Common.NetCore.Setting;
+using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
 using System;
-using System.Configuration;
 
 namespace Easy.Common.NetCore.MQ.RabbitMQ
 {
@@ -13,6 +14,7 @@ namespace Easy.Common.NetCore.MQ.RabbitMQ
     {
         private readonly static object _lockerConn = new object();
         private static IConnection _connection;
+        private static readonly IConfiguration _configuration = EasyIocContainer.Container.GetInstance<IConfiguration>();
 
         public static IConnection Connection
         {
@@ -32,16 +34,17 @@ namespace Easy.Common.NetCore.MQ.RabbitMQ
                                     _connection.Dispose();
                                 }
 
-                                string hostName = ConfigurationManager.AppSettings["RabbitMQ.HostName"];
-                                if (!int.TryParse(ConfigurationManager.AppSettings["RabbitMQ.Port"], out int port))
+                                string hostName = _configuration["appSettings:RabbitMQ.HostName"];
+
+                                if (!int.TryParse(_configuration["appSettings:RabbitMQ.Port"], out int port))
                                 {
-                                    throw new Exception("请检查【RabbitMQ.Port】是否为合法端口号");
+                                    throw new Exception("请检查【appSettings:RabbitMQ.Port】是否为合法端口号");
                                 }
 
-                                string userName = ConfigurationManager.AppSettings["RabbitMQ.UserName"];
-                                string password = ConfigurationManager.AppSettings["RabbitMQ.Pwd"];
+                                string userName = _configuration["appSettings:RabbitMQ.UserName"];
+                                string password = _configuration["appSettings:RabbitMQ.Pwd"];
 
-                                bool.TryParse(ConfigurationManager.AppSettings["RabbitMQ.PwdEncrypt"] ?? "", out bool isEncryption);
+                                bool.TryParse(_configuration["appSettings:RabbitMQ.PwdEncrypt"] ?? "", out bool isEncryption);
 
                                 if (isEncryption)
                                 {

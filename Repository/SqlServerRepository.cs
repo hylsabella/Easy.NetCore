@@ -73,6 +73,8 @@ namespace Easy.Common.NetCore.Repository
 
                 if (newId <= 0) throw new RepositoryException("插入数据失败！");
 
+                model.ID = newId;
+
                 return newId;
             }
         }
