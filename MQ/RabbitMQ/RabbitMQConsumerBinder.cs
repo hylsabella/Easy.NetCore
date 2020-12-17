@@ -14,7 +14,7 @@ namespace Easy.Common.NetCore.MQ.RabbitMQ
     public class RabbitMQConsumerBinder : IMqConsumerBinder
     {
         /// <summary>
-        /// 发现并绑定消费者事件
+        /// 发现并绑定消费者
         /// </summary>
         public virtual void BindConsumer()
         {

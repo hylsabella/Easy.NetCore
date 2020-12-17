@@ -6,6 +6,9 @@ namespace Easy.Common.NetCore.MQ
 {
     public static class MqConsumerRegister
     {
+        /// <summary>
+        /// 注册MQ消费者
+        /// </summary>
         public static void RegisterMQConsumer(this ContainerBuilder builder)
         {
             var allTypes = AppDomain.CurrentDomain.GetAllTypes();

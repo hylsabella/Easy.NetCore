@@ -6,7 +6,7 @@
     public interface IMqConsumerBinder
     {
         /// <summary>
-        /// 发现并绑定消费者事件
+        /// 发现并绑定消费者
         /// </summary>
         void BindConsumer();
     }

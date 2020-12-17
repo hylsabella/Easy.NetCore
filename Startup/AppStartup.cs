@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json;
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -75,6 +76,11 @@ namespace Easy.Common.NetCore.Startup
                         options.Filters.Add(filter);
                     }
                 }
+            })
+            .AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Local;
+                options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
             })
             .AddControllersAsServices();//注册Controllers到IOC
 

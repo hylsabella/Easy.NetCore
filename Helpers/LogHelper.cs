@@ -13,7 +13,7 @@ namespace Easy.Common.NetCore.Helpers
             logger.WithProperty(_propertyKey, filename).Info(message);
         }
 
-        public static void Info(Exception ex, string message, string filename = "")
+        public static void Info(Exception ex, string message = "", string filename = "")
         {
             logger.WithProperty(_propertyKey, filename).Info(ex, message);
         }
@@ -23,7 +23,7 @@ namespace Easy.Common.NetCore.Helpers
             logger.WithProperty(_propertyKey, filename).Trace(message);
         }
 
-        public static void Trace(Exception ex, string message, string filename = "")
+        public static void Trace(Exception ex, string message = "", string filename = "")
         {
             logger.WithProperty(_propertyKey, filename).Trace(ex, message);
         }
@@ -33,7 +33,7 @@ namespace Easy.Common.NetCore.Helpers
             logger.WithProperty(_propertyKey, filename).Debug(message);
         }
 
-        public static void Debug(Exception ex, string message, string filename = "")
+        public static void Debug(Exception ex, string message = "", string filename = "")
         {
             logger.WithProperty(_propertyKey, filename).Debug(ex, message);
         }
@@ -43,7 +43,7 @@ namespace Easy.Common.NetCore.Helpers
             logger.WithProperty(_propertyKey, filename).Warn(message);
         }
 
-        public static void Warn(Exception ex, string message, string filename = "")
+        public static void Warn(Exception ex, string message = "", string filename = "")
         {
             logger.WithProperty(_propertyKey, filename).Warn(ex, message);
         }
@@ -53,7 +53,7 @@ namespace Easy.Common.NetCore.Helpers
             logger.WithProperty(_propertyKey, filename).Error(message);
         }
 
-        public static void Error(Exception ex, string message, string filename = "")
+        public static void Error(Exception ex, string message = "", string filename = "")
         {
             logger.WithProperty(_propertyKey, filename).Error(ex, message);
         }
@@ -63,7 +63,7 @@ namespace Easy.Common.NetCore.Helpers
             logger.WithProperty(_propertyKey, filename).Fatal(message);
         }
 
-        public static void Fatal(Exception ex, string message, string filename = "")
+        public static void Fatal(Exception ex, string message = "", string filename = "")
         {
             logger.WithProperty(_propertyKey, filename).Fatal(ex, message);
         }

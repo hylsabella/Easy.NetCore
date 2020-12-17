@@ -42,7 +42,7 @@ namespace Easy.Common.NetCore.Extentions
         }
 
         /// <summary>
-        /// yyyy-MM-dd hh:mm:ss
+        /// yyyy-MM-dd HH:mm:ss
         /// </summary>
         public static string ToLongTime(this DateTime dt)
         {
@@ -50,7 +50,7 @@ namespace Easy.Common.NetCore.Extentions
         }
 
         /// <summary>
-        /// yyyy-MM-dd hh:mm:ss
+        /// yyyy-MM-dd HH:mm:ss
         /// </summary>
         public static string ToLongTime(this DateTime? dt)
         {
