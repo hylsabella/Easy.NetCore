@@ -47,7 +47,6 @@ namespace Easy.Common.NetCore.Startup
                 if (cookieOptionsAction == null) throw new Exception("请先设置Cookie选项！");
 
                 services.AddControllersWithViews().AddRazorRuntimeCompilation();
-
                 services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(cookieOptionsAction);
             }
             else if (webType == WebType.WebApi)
@@ -69,7 +68,7 @@ namespace Easy.Common.NetCore.Startup
                     options.Filters.Add<IPWebApiFilter>();
                 }
 
-                if (filters != null && filters.Length > 0)
+                if (filters?.Length > 0)
                 {
                     foreach (var filter in filters)
                     {
@@ -97,7 +96,7 @@ namespace Easy.Common.NetCore.Startup
                 x.RegisterValidatorsFromAssemblyContaining(typeInCurrAppDomain, lifetime: ServiceLifetime.Singleton);
             });
 
-            //注册gzip压缩
+            //注册压缩组件
             services.AddResponseCompression(options =>
             {
                 options.Providers.Add<BrotliCompressionProvider>();
