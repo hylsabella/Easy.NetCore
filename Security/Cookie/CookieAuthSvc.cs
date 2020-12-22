@@ -31,7 +31,8 @@ namespace Easy.Common.NetCore.Security
             var authProperties = new AuthenticationProperties()
             {
                 IsPersistent = isPersistent,
-                ExpiresUtc = expiresUtc
+                ExpiresUtc = expiresUtc,
+                AllowRefresh = true //ÊÇ·ñÔÊÐíË¢ÐÂ
             };
 
             httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal, authProperties).Wait();

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Easy.Common.NetCore.Repository
+﻿namespace Easy.Common.NetCore.Repository
 {
     public class EntityPrimary
     {

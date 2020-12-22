@@ -16,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -78,6 +79,7 @@ namespace Easy.Common.NetCore.Startup
             })
             .AddNewtonsoftJson(options =>
             {
+                options.SerializerSettings.ContractResolver = new DefaultContractResolver();
                 options.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Local;
                 options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
             })

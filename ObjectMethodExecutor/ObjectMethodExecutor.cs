@@ -188,7 +188,7 @@ namespace Microsoft.Extensions.Internal
 
         private static MethodExecutor WrapVoidMethod(VoidMethodExecutor executor)
         {
-            return delegate(object target, object[] parameters)
+            return delegate (object target, object[] parameters)
             {
                 executor(target, parameters);
                 return null;
@@ -306,7 +306,7 @@ namespace Microsoft.Extensions.Internal
             // awaitable, then do so.
             var coercedMethodCall = coercedAwaitableInfo.RequiresCoercion
                 ? Expression.Invoke(coercedAwaitableInfo.CoercerExpression, methodCall)
-                : (Expression) methodCall;
+                : (Expression)methodCall;
 
             // return new ObjectMethodExecutorAwaitable(
             //     (object)coercedMethodCall,

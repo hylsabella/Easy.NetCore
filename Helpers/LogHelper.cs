@@ -1,5 +1,5 @@
-﻿using System;
-using NLog;
+﻿using NLog;
+using System;
 
 namespace Easy.Common.NetCore.Helpers
 {
