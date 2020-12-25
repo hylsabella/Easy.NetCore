@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Autofac.Extras.CommonServiceLocator;
+using Easy.Common.NetCore.Consul;
 using Easy.Common.NetCore.Enums;
 using Easy.Common.NetCore.Filters;
 using Easy.Common.NetCore.IoC;
@@ -124,7 +125,7 @@ namespace Easy.Common.NetCore.Startup
                 .RegExtraIoC(builder);
         }
 
-        public static void EasyConfigure(IApplicationBuilder app, IWebHostEnvironment env, IConfiguration configuration, WebType webType, bool isHttpsRedirect = false, string mvcDefaultRoute = "{controller=Home}/{action=Index}/{id?}", string webApiName = "")
+        public static void EasyConfigure(IApplicationBuilder app, IWebHostEnvironment env, IConfiguration configuration, WebType webType, bool isHttpsRedirect = false, string mvcDefaultRoute = "{controller=Home}/{action=Index}/{id?}", string webApiName = "", ConsulOption consulOption = null)
         {
             if (env.IsDevelopment())
             {
@@ -182,10 +183,16 @@ namespace Easy.Common.NetCore.Startup
             var autofacContainer = app.ApplicationServices.GetAutofacRoot();
             var serviceLocator = new AutofacServiceLocator(autofacContainer);
 
-            new AppStartup()
+            var appStartup = new AppStartup()
                 .InitIoC(serviceLocator)
-                .CheckRedis()
-                .Start();
+                .CheckRedis();
+
+            if (consulOption != null)
+            {
+                appStartup.RegisterConsul(consulOption, app);
+            }
+
+            appStartup.Start();
         }
     }
 }
