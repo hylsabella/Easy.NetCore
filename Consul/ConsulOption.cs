@@ -8,7 +8,7 @@ namespace Easy.Common.NetCore.Consul
         /// <summary>
         /// 全局唯一注册Id
         /// </summary>
-        public string RegId { get; set; }
+        public string GlobalRegId { get; set; }
 
         /// <summary>
         /// 服务名称
@@ -26,9 +26,9 @@ namespace Easy.Common.NetCore.Consul
         public int ServicePort { get; set; }
 
         /// <summary>
-        /// 服务健康检查地址
+        /// 服务健康检查地址（GET请求）
         /// </summary>
-        public string ServiceHealthCheck { get; set; }
+        public string ServiceHealthUrlCheck { get; set; }
 
         /// <summary>
         /// 健康检查时间间隔
