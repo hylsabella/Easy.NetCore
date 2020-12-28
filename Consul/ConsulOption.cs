@@ -43,7 +43,7 @@ namespace Easy.Common.NetCore.Consul
         /// <summary>
         /// 服务元数据（例如可存储该服务的最大并发访问量之类的信息，以便调用方进行筛选）
         /// </summary>
-        public IDictionary<string, string> Meta { get; set; }
+        public Dictionary<string, string> Meta { get; set; }
 
         /// <summary>
         /// Consul地址
