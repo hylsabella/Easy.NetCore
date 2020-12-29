@@ -34,7 +34,7 @@ namespace Easy.Common.NetCore.Consul
                     Port = consulOption.ServicePort,    // 服务绑定端口
                     Tags = !string.IsNullOrWhiteSpace(consulOption.ServiceRemark) ? new string[] { consulOption.ServiceRemark } : null,
                     Meta = consulOption.Meta,
-                    Check = new AgentServiceCheck()
+                    Check = new AgentServiceCheck
                     {
                         DeregisterCriticalServiceAfter = TimeSpan.FromMinutes(2),   //服务状态异常后多久注销服务
                         Timeout = TimeSpan.FromSeconds(5),
