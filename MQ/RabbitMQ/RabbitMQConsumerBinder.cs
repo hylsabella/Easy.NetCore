@@ -1,6 +1,5 @@
 ﻿using Easy.Common.NetCore.Extentions;
 using Easy.Common.NetCore.Helpers;
-using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
@@ -72,7 +71,7 @@ namespace Easy.Common.NetCore.MQ.RabbitMQ
                     {
                         var traceInfo = new { ConsumerExecutor = consumerExecutor, MsgJson = msgJson };
 
-                        LogHelper.Error(ex, $"消费者执行异常：{JsonConvert.SerializeObject(traceInfo)}", filename: $"RabbitMQ_{queueName}_Exception");
+                        LogHelper.Error(ex, $"消费者执行异常：{msgJson}", filename: $"RabbitMQ_{queueName}_Exception");
                     }
                     finally
                     {
@@ -80,7 +79,7 @@ namespace Easy.Common.NetCore.MQ.RabbitMQ
 
                         if (result == null || !result.ReplyType.IsInDefined())
                         {
-                            LogHelper.Error($"消费者未回馈消息处理情况：{JsonConvert.SerializeObject(traceInfo)}", filename: $"RabbitMQ_{queueName}_Unknown");
+                            LogHelper.Error($"消费者未回馈消息处理情况：{msgJson}", filename: $"RabbitMQ_{queueName}_Unknown");
 
                             channel.BasicNack(deliveryTag: eventArgs.DeliveryTag, multiple: false, requeue: false);
                         }
@@ -88,7 +87,7 @@ namespace Easy.Common.NetCore.MQ.RabbitMQ
                         {
                             if (result.ReplyType != MqReplyType.Ack)
                             {
-                                LogHelper.Trace($"消费者处理情况：{JsonConvert.SerializeObject(traceInfo)}", filename: $"RabbitMQ_{queueName}_{result.ReplyType.ToString()}");
+                                LogHelper.Trace($"消费者处理情况：{msgJson}", filename: $"RabbitMQ_{queueName}_{result.ReplyType.ToString()}");
                             }
 
                             if (result.ReplyType == MqReplyType.Ack)
@@ -116,7 +115,7 @@ namespace Easy.Common.NetCore.MQ.RabbitMQ
             }
             catch (Exception ex)
             {
-                LogHelper.Error(ex, $"RabbitMQReceivedBinder.Received异常：{JsonConvert.SerializeObject(consumerExecutor)}", filename: $"RabbitMQReceivedBinder.Received_RabbitMQ_{queueName}_Exception");
+                LogHelper.Error(ex, $"RabbitMQReceivedBinder.Received异常：", filename: $"RabbitMQReceivedBinder.Received_RabbitMQ_{queueName}_Exception");
 
                 throw;
             }
