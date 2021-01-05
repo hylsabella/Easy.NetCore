@@ -36,7 +36,7 @@ namespace Easy.Common.NetCore.Consul
                     Meta = consulOption.Meta,
                     Check = new AgentServiceCheck
                     {
-                        DeregisterCriticalServiceAfter = TimeSpan.FromMinutes(2),   //服务状态异常后多久注销服务
+                        DeregisterCriticalServiceAfter = TimeSpan.FromMinutes(10),   //服务状态异常后多久注销服务
                         Timeout = TimeSpan.FromSeconds(5),
                         Interval = consulOption.ServiceHealthCheckInterval ?? TimeSpan.FromSeconds(5), //健康检查时间间隔
                         HTTP = !string.IsNullOrWhiteSpace(consulOption.ServiceHealthUrlCheck) ? consulOption.ServiceHealthUrlCheck : null, //健康检查地址
@@ -60,6 +60,7 @@ namespace Easy.Common.NetCore.Consul
 
                     lifetime.ApplicationStopping.Register(() =>
                     {
+                        logger.Trace("Consul 应用程序终止时，服务取消注册");
                         consulClient.Agent.ServiceDeregister(registration.ID).Wait();
                     });
                 }
@@ -67,6 +68,7 @@ namespace Easy.Common.NetCore.Consul
                 {
                     AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
                     {
+                        logger.Trace("Consul 应用程序终止时，服务取消注册");
                         consulClient.Agent.ServiceDeregister(registration.ID).Wait();
                     };
                 }
