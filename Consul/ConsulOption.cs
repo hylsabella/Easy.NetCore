@@ -36,6 +36,16 @@ namespace Easy.Common.NetCore.Consul
         public TimeSpan? ServiceHealthCheckInterval { get; set; }
 
         /// <summary>
+        /// 服务是否存在检查时间间隔（可能由于Consul服务器丢失服务信息数据，需要服务主动定时检查服务是否存在并注册）
+        /// </summary>
+        public TimeSpan? ServiceIsExistCheckInterval { get; set; }
+
+        /// <summary>
+        /// 服务状态异常后多久注销服务
+        /// </summary>
+        public TimeSpan? DeregisterCriticalServiceAfter { get; set; }
+
+        /// <summary>
         /// 服务备注信息
         /// </summary>
         public string ServiceRemark { get; set; }
