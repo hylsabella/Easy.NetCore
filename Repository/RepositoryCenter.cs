@@ -90,5 +90,36 @@ namespace Easy.Common.NetCore.Repository
 
             return sqlBuilder;
         }
+
+        /// <summary>
+        /// 获取分页SQL（记录条数）
+        /// </summary>
+        public static string GetPageCountSql(string tableName, string whereSql = "")
+        {
+            if (string.IsNullOrWhiteSpace(tableName)) throw new Exception($"tableName不能为空");
+
+            string sql = $@"SELECT COUNT(*) FROM {tableName} WHERE 1=1{whereSql}";
+
+            return sql;
+        }
+
+        /// <summary>
+        /// 获取分页SQL（分页记录）
+        /// </summary>
+        public static string GetPageSql(string tableName, string orderBySql, string whereSql = "")
+        {
+            if (string.IsNullOrWhiteSpace(tableName)) throw new Exception($"tableName不能为空");
+
+            string sql = $@"SELECT * FROM (
+                                            SELECT 
+                                                ROW_NUMBER() OVER (ORDER BY {orderBySql}) AS RowNumber,* 
+                                            FROM 
+                                                {tableName} 
+                                            WHERE 1=1{whereSql}
+                                          )
+                            AS Temp WHERE Temp.RowNumber > @StartIndex AND Temp.RowNumber <= @EndIndex";
+
+            return sql;
+        }
     }
 }

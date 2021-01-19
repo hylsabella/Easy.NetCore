@@ -69,7 +69,16 @@ namespace Easy.Common.NetCore.Repository
 
         public virtual string GetOrderBy()
         {
-            return " Id DESC ";
+            this.GetOrderByParam(out string orderByName, out string orderByAscDesc);
+
+            if (!string.IsNullOrWhiteSpace(orderByName))
+            {
+                return $"{orderByName} {orderByAscDesc}";
+            }
+            else
+            {
+                return " Id DESC ";
+            }
         }
     }
 }
