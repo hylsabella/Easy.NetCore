@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
+using System.Web;
 
 namespace Easy.Common.NetCore.Extentions
 {
@@ -139,6 +140,26 @@ namespace Easy.Common.NetCore.Extentions
             }
 
             return result;
+        }
+
+        public static string UrlDecode(this string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return string.Empty;
+            }
+
+            return HttpUtility.UrlDecode(input);
+        }
+
+        public static string UrlEncode(this string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return string.Empty;
+            }
+
+            return HttpUtility.UrlEncode(input);
         }
 
         /// <summary>

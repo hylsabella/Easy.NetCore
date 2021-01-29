@@ -10,7 +10,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 {
     public partial class RedisCache : IEasyCache
     {
-        private static Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         public TimeSpan Expires { get; }
 

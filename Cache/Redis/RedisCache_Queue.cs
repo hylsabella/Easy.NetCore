@@ -14,7 +14,7 @@ namespace Easy.Common.NetCore.Cache.Redis
         public long QueuePush<T>(string queueName, T data, int db = 0)
         {
             CheckHelper.NotEmpty(queueName, "queueName");
-            if (data == null) throw new ArgumentNullException("data", "不能向redis队列插入空数据");
+            if (data == null) throw new ArgumentNullException(nameof(data), "不能向redis队列插入空数据");
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 

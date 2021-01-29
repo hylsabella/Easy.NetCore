@@ -3,6 +3,9 @@ using System.Runtime.Serialization;
 
 namespace Easy.Common.NetCore.Exceptions
 {
+    /// <summary>
+    /// 友好异常（用于显示给前端错误信息）
+    /// </summary>
     [Serializable]
     public class FException : Exception
     {

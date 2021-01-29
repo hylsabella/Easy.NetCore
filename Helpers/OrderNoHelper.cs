@@ -117,10 +117,10 @@ namespace Easy.Common.NetCore.Helpers
 
     public static class OrderPrefix
     {
-        public static string 充值申请表前缀 = "r";
+        public const string 充值申请表前缀 = "r";
 
-        public static string 提现申请表前缀 = "w";
+        public const string 提现申请表前缀 = "w";
 
-        public static string 流水表前缀 = "l";
+        public const string 流水表前缀 = "l";
     }
 }

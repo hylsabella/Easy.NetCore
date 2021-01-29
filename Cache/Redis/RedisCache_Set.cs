@@ -1,4 +1,5 @@
 ﻿using StackExchange.Redis;
+using System;
 using System.Collections.Generic;
 
 namespace Easy.Common.NetCore.Cache.Redis
@@ -66,7 +67,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            RedisValue[] redisValues = redisdb.SetMembers(key) ?? new RedisValue[] { };
+            RedisValue[] redisValues = redisdb.SetMembers(key) ?? Array.Empty<RedisValue>();
 
             foreach (string value in redisValues)
             {

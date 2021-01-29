@@ -7,6 +7,7 @@ namespace Easy.Common.NetCore.Enums
     {
         PC = 1,
         Android = 2,
-        IOS = 3,
+        IOS = 4,
+        H5 = 8,
     }
 }
