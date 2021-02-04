@@ -110,10 +110,25 @@ namespace Easy.Common.NetCore.Extentions
                 return input;
             }
 
-            byte[] pwd = Encoding.UTF8.GetBytes(input);
+            byte[] sourceBytes = Encoding.UTF8.GetBytes(input);
             HashAlgorithm sha256 = new SHA256CryptoServiceProvider();
 
-            return ComputeHash(pwd, sha256);
+            return ComputeHash(sourceBytes, sha256);
+        }
+
+        public static string ToSHA1(this string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return input;
+            }
+
+            byte[] sourceBytes = Encoding.UTF8.GetBytes(input);
+            SHA1 sha1Hash = SHA1.Create();
+
+            string result = ComputeHash(sourceBytes, sha1Hash).Replace("-", string.Empty);
+
+            return result;
         }
 
         public static long ToLong(this string input)

@@ -1,6 +1,8 @@
 ﻿using Dapper;
 using Easy.Common.NetCore.Exceptions;
 using Easy.Common.NetCore.Helpers;
+using Newtonsoft.Json;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -16,6 +18,7 @@ namespace Easy.Common.NetCore.Repository
     public class SqlServerRepository<T> : IRepository<T> where T : EntityPrimary
     {
         private readonly string _tableName = typeof(T).Name;
+        private static Logger logger = LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// 获取主键记录
@@ -69,13 +72,21 @@ namespace Easy.Common.NetCore.Repository
             {
                 connection.Open();
 
-                int newId = connection.Query<int>(sql, model).FirstOrDefault();
+                try
+                {
+                    int newId = connection.Query<int>(sql, model).FirstOrDefault();
 
-                if (newId <= 0) throw new RepositoryException("插入数据失败！");
+                    if (newId <= 0) throw new RepositoryException("插入数据失败！");
 
-                model.ID = newId;
+                    model.ID = newId;
 
-                return newId;
+                    return newId;
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex, $"插入数据库表{_tableName}失败：{JsonConvert.SerializeObject(model)}");
+                    throw;
+                }
             }
         }
 
