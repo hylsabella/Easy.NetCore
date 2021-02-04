@@ -131,6 +131,34 @@ namespace Easy.Common.NetCore.Extentions
             return result;
         }
 
+        public static string ToBase64String(this string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return string.Empty;
+            }
+
+            byte[] buffer = Encoding.UTF8.GetBytes(input);
+
+            string result = Convert.ToBase64String(buffer);
+
+            return result;
+        }
+
+        public static string DecodeBase64String(this string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return string.Empty;
+            }
+
+            byte[] buffer = Convert.FromBase64String(input);
+
+            string result = Encoding.UTF8.GetString(buffer);
+
+            return result;
+        }
+
         public static long ToLong(this string input)
         {
             long.TryParse(input, out long result);
