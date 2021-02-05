@@ -27,9 +27,9 @@ namespace Easy.Common.NetCore.MQ.RabbitMQ
 
         protected virtual void Received(MqConsumerExecutor consumerExecutor)
         {
-            if (consumerExecutor == null)
+            if (consumerExecutor == null || string.IsNullOrWhiteSpace(consumerExecutor?.RouteName))
             {
-                return;
+                throw new ArgumentException("Received(consumerExecutor)不能为空");
             }
 
             string exchangeName = consumerExecutor.RouteName;

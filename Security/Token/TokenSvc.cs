@@ -1,6 +1,5 @@
 ﻿using Easy.Common.NetCore.Cache;
 using Easy.Common.NetCore.Enums;
-using Easy.Common.NetCore.Helpers;
 using Easy.Common.NetCore.Setting;
 using JWT.Algorithms;
 using JWT.Builder;

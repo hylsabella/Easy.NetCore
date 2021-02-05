@@ -1,5 +1,4 @@
-﻿using Easy.Common.NetCore.Helpers;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using StackExchange.Redis;
 using System;
 

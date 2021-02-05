@@ -1,5 +1,4 @@
-﻿using Easy.Common.NetCore.Helpers;
-using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using NLog;
 using System;

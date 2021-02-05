@@ -1,6 +1,5 @@
 ﻿using Dapper;
 using Easy.Common.NetCore.Exceptions;
-using Easy.Common.NetCore.Helpers;
 using Newtonsoft.Json;
 using NLog;
 using System;
@@ -37,7 +36,7 @@ namespace Easy.Common.NetCore.Repository
             {
                 connection.Open();
 
-                return connection.QuerySingleOrDefault<T>($"SELECT * FROM [{_tableName + tableIndex}] WHERE [Id] = @Id", new { Id = id });
+                return connection.QuerySingleOrDefault<T>($"SELECT * FROM [{_tableName + tableIndex}] WHERE [Id]=@Id", new { Id = id });
             }
         }
 
@@ -60,11 +59,10 @@ namespace Easy.Common.NetCore.Repository
             var orderByProperties = properties.OrderBy(x => x.Name, StringComparer.Ordinal).ToArray();
 
             //排除主键Id字段（数据库自增）
-            string nameSql = string.Join(",", orderByProperties.Where(x => !string.Equals(x.Name, "Id", StringComparison.OrdinalIgnoreCase))
-                                   .Select(x => $"[{x.Name}]"));
+            var excludeIdProperties = orderByProperties.Where(x => !string.Equals(x.Name, "Id", StringComparison.OrdinalIgnoreCase));
 
-            string valueSql = string.Join(",", orderByProperties.Where(x => !string.Equals(x.Name, "Id", StringComparison.OrdinalIgnoreCase))
-                                   .Select(x => $"@{x.Name}"));
+            string nameSql = string.Join(",", excludeIdProperties.Select(x => $"[{x.Name}]"));
+            string valueSql = string.Join(",", excludeIdProperties.Select(x => $"@{x.Name}"));
 
             string sql = $"INSERT INTO [{_tableName + tableIndex}]({nameSql}) VALUES({valueSql});SELECT @@IDENTITY";
 
@@ -84,7 +82,7 @@ namespace Easy.Common.NetCore.Repository
                 }
                 catch (Exception ex)
                 {
-                    logger.Error(ex, $"插入数据库表{_tableName}失败：{JsonConvert.SerializeObject(model)}");
+                    logger.Error(ex, $"插入数据库表【{_tableName}】失败：{JsonConvert.SerializeObject(model)}");
                     throw;
                 }
             }
@@ -109,11 +107,10 @@ namespace Easy.Common.NetCore.Repository
             var orderByProperties = properties.OrderBy(x => x.Name, StringComparer.Ordinal).ToArray();
 
             //排除主键Id字段（数据库自增）
-            string nameSql = string.Join(",", orderByProperties.Where(x => !string.Equals(x.Name, "Id", StringComparison.OrdinalIgnoreCase))
-                                   .Select(x => $"[{x.Name}]"));
+            var excludeIdProperties = orderByProperties.Where(x => !string.Equals(x.Name, "Id", StringComparison.OrdinalIgnoreCase));
 
-            string valueSql = string.Join(",", orderByProperties.Where(x => !string.Equals(x.Name, "Id", StringComparison.OrdinalIgnoreCase))
-                                    .Select(x => $"@{x.Name}"));
+            string nameSql = string.Join(",", excludeIdProperties.Select(x => $"[{x.Name}]"));
+            string valueSql = string.Join(",", excludeIdProperties.Select(x => $"@{x.Name}"));
 
             string sql = $"INSERT INTO [{_tableName + tableIndex}]({nameSql}) VALUES({valueSql})";
 
@@ -146,29 +143,27 @@ namespace Easy.Common.NetCore.Repository
             var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
             CheckHelper.ArrayNotHasNull(properties, "properties");
 
+            //排除主键Id字段（数据库自增）
+            var excludeIdProperties = properties.Where(x => !string.Equals(x.Name, "Id", StringComparison.OrdinalIgnoreCase));
 
-            //排除主键Id字段
-            string valueSql = string.Join(",", properties.Where(x => !string.Equals(x.Name, "Id", StringComparison.OrdinalIgnoreCase))
-                                    .Select(x =>
-                                    {
-                                        if (string.Equals(x.Name, "Version", StringComparison.OrdinalIgnoreCase))
-                                        {
-                                            return $"[Version] = [Version] + 1";
-                                        }
-
-                                        if (string.Equals(x.Name, "EditDate", StringComparison.OrdinalIgnoreCase))
-                                        {
-                                            return $"[EditDate] = GETDATE()";
-                                        }
-
-                                        return $"[{x.Name}] = @{x.Name}";
-                                    }));
+            string valueSql = string.Join(",", excludeIdProperties.Select(x =>
+                                                {
+                                                    if (string.Equals(x.Name, "Version", StringComparison.OrdinalIgnoreCase))
+                                                    {
+                                                        return $"[Version]=[Version] + 1";
+                                                    }
+                                                    if (string.Equals(x.Name, "EditDate", StringComparison.OrdinalIgnoreCase))
+                                                    {
+                                                        return $"[EditDate]=GETDATE()";
+                                                    }
+                                                    return $"[{x.Name}] = @{x.Name}";
+                                                }));
 
             bool hasVersionField = properties.Where(x => string.Equals(x.Name, "Version", StringComparison.OrdinalIgnoreCase)).Any();
 
-            string versionWhere = hasVersionField ? " AND [Version] = @Version " : string.Empty;
+            string versionWhere = hasVersionField ? " AND [Version]=@Version " : string.Empty;
 
-            string sql = $"UPDATE [{_tableName + tableIndex}] SET {valueSql} WHERE [Id] = @Id {versionWhere}";
+            string sql = $"UPDATE [{_tableName + tableIndex}] SET {valueSql} WHERE [Id]=@Id {versionWhere}";
 
             using (IDbConnection connection = new SqlConnection(connectionString))
             {
@@ -197,7 +192,7 @@ namespace Easy.Common.NetCore.Repository
             {
                 connection.Open();
 
-                int count = connection.Execute($"UPDATE [{_tableName + tableIndex}] SET [IsDel] = 1,[Version] = [Version] + 1 WHERE [Id] = @Id", new { Id = id });
+                int count = connection.Execute($"UPDATE [{_tableName + tableIndex}] SET [IsDel]=1,[Version]=[Version] + 1 WHERE [Id]=@Id", new { Id = id });
 
                 if (count <= 0) throw new RepositoryException("软删除数据失败，请重新加载数据后重试！");
             }
@@ -220,7 +215,7 @@ namespace Easy.Common.NetCore.Repository
             {
                 connection.Open();
 
-                int count = connection.Execute($"DELETE FROM [{_tableName + tableIndex}] WHERE [Id] = @Id", new { Id = id });
+                int count = connection.Execute($"DELETE FROM [{_tableName + tableIndex}] WHERE [Id]=@Id", new { Id = id });
 
                 if (count <= 0) throw new RepositoryException("物理删除数据失败！");
             }
@@ -258,29 +253,29 @@ namespace Easy.Common.NetCore.Repository
             {
                 if (search.BeginTime.HasValue)
                 {
-                    timeWhere += " AND [CreateDate] >= @BeginTime ";
+                    timeWhere += " AND [CreateDate]>=@BeginTime ";
                 }
 
                 if (search.EndTime.HasValue)
                 {
-                    timeWhere += " AND [CreateDate] < @EndTime ";
+                    timeWhere += " AND [CreateDate]<@EndTime ";
                 }
             }
 
-            string isDelWhere = hasIsDelDateField ? " AND IsDel = '0' " : string.Empty;
+            string isDelWhere = hasIsDelDateField ? " AND IsDel='0' " : string.Empty;
 
             using (IDbConnection connection = new SqlConnection(connectionString))
             {
                 connection.Open();
 
-                int totalCount = connection.QuerySingleOrDefault<int>($"SELECT COUNT(*) FROM [{_tableName + tableIndex}] WHERE 1 = 1{isDelWhere}{timeWhere}", param);
+                int totalCount = connection.QuerySingleOrDefault<int>($"SELECT COUNT(*) FROM [{_tableName + tableIndex}] WHERE 1=1 {isDelWhere}{timeWhere}", param);
 
                 if (totalCount <= 0)
                 {
                     return new PageResult<T> { TotalCount = 0, Results = new List<T>() };
                 }
 
-                string sql = $"SELECT * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [Id] DESC) AS RowNumber,* FROM [{_tableName + tableIndex}] WHERE 1 = 1{isDelWhere}{timeWhere}) AS Temp WHERE Temp.RowNumber > @StartIndex AND Temp.RowNumber <= @EndIndex";
+                string sql = $"SELECT * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [Id] DESC) AS RowNumber,* FROM [{_tableName + tableIndex}] WHERE 1=1 {isDelWhere} {timeWhere}) AS Temp WHERE Temp.RowNumber>@StartIndex AND Temp.RowNumber<=@EndIndex";
 
                 var results = connection.Query<T>(sql, param).ToList();
 

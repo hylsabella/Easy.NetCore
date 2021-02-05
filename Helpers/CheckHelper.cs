@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Easy.Common.NetCore.Helpers
+namespace Easy.Common.NetCore
 {
     public static class CheckHelper
     {

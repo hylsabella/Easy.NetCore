@@ -32,5 +32,10 @@ namespace Easy.Common.NetCore.MQ
         /// 此确认适用于一条消息还是多条消息
         /// </summary>
         public bool Multiple { get; set; }
+
+        /// <summary>
+        /// 异常信息
+        /// </summary>
+        public Exception Exception { get; set; }
     }
 }

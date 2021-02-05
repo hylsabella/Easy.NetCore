@@ -1,5 +1,4 @@
-﻿using Easy.Common.NetCore.Helpers;
-using StackExchange.Redis;
+﻿using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 

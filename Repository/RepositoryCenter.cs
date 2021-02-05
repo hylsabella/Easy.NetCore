@@ -115,7 +115,8 @@ namespace Easy.Common.NetCore.Repository
                                                 ROW_NUMBER() OVER (ORDER BY {orderBySql}) AS RowNumber,* 
                                             FROM 
                                                 {tableName} 
-                                            WHERE 1=1{whereSql}
+                                            WHERE 
+                                                1=1 {whereSql}
                                           )
                             AS Temp WHERE Temp.RowNumber > @StartIndex AND Temp.RowNumber <= @EndIndex";
 
