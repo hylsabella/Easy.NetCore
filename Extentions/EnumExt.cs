@@ -38,18 +38,18 @@ namespace Easy.Common.NetCore.Extentions
             return isOk;
         }
 
-        public static Dictionary<string, int> GetEnumList(this Type enumType, bool isNeedAddAll = true)
+        public static Dictionary<string, int?> GetEnumList(this Type enumType, bool isNeedAddAll = true)
         {
             if (!enumType.IsEnum)
             {
-                return new Dictionary<string, int>();
+                return new Dictionary<string, int?>();
             }
 
-            var dic = new Dictionary<string, int>();
+            var dic = new Dictionary<string, int?>();
 
             if (isNeedAddAll)
             {
-                dic.Add("全部", -1);
+                dic.Add("全部", null);
             }
 
             foreach (var value in enumType.GetEnumValues())
@@ -92,7 +92,7 @@ namespace Easy.Common.NetCore.Extentions
 
             if (isNeedAddAll)
             {
-                list.Insert(0, new SelectListItem { Text = "全部", Value = "-1" });
+                list.Insert(0, new SelectListItem { Text = "全部", Value = null });
             }
 
             if (selectedValue != null)
@@ -108,7 +108,7 @@ namespace Easy.Common.NetCore.Extentions
             {
                 if (isNeedAddAll)
                 {
-                    var find = list.Where(i => "-1" == i.Value);
+                    var find = list.Where(i => null == i.Value);
 
                     if (find.Any())
                     {
