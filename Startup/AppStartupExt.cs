@@ -15,6 +15,7 @@ using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 
 namespace Easy.Common.NetCore.Startup
@@ -247,13 +248,12 @@ namespace Easy.Common.NetCore.Startup
             ThreadPool.GetMaxThreads(out int maxWorkThread, out int maxIOThread);
             ThreadPool.GetAvailableThreads(out int workThread, out int completeThread);
 
-            string result = Environment.NewLine;
-            result += "最大工作线程：" + maxWorkThread + "，最大IO线程：" + maxIOThread + Environment.NewLine;
-            result += "最小工作线程：" + minWorkThread + "，最小IO线程：" + minIOThread + Environment.NewLine;
-            result += "可用工作线程：" + workThread + "，可用IO线程：" + completeThread + Environment.NewLine;
-            result += Environment.NewLine;
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"最大工作线程：{maxWorkThread}，最大IO线程：{maxIOThread}");
+            sb.AppendLine($"最小工作线程：{minWorkThread}，最小IO线程：{minIOThread}");
+            sb.AppendLine($"可用工作线程：{workThread}，可用IO线程：{completeThread}");
 
-            logger.Info(result);
+            logger.Info(sb.ToString());
 
             return startup;
         }
