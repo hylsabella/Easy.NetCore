@@ -30,24 +30,37 @@ namespace Easy.Common.NetCore.IoC.Autofac
 
             foreach (Type type in allTypes)
             {
-                //是约定自动注册
-                bool isPromissoryRegisterType = type.GetCustomAttribute<AutoRegisterAttribute>() != null;
+                var attr = type.GetCustomAttribute<AutoRegisterAttribute>();
+                bool isPromissoryAutoRegType = attr != null;//是约定自动注册
 
                 //约定是一个类，且是约定自动注册
-                if (type.IsClass && isPromissoryRegisterType)
+                if (type.IsClass && isPromissoryAutoRegType)
                 {
-                    string typeName = type.Name;
-                    string interfaceName = $"I{typeName}";
-
-                    Type interfaceType = type.GetInterface(interfaceName);
+                    Type interfaceType = !string.IsNullOrWhiteSpace(attr.InterfaceName) ?
+                                                  type.GetInterface(attr.InterfaceName) :
+                                                  type.GetInterface($"I{type.Name}");
 
                     if (interfaceType != null)
                     {
-                        builder.RegisterType(type).As(interfaceType).PropertiesAutowired().SingleInstance();
+                        if (!string.IsNullOrWhiteSpace(attr.RegKey))
+                        {
+                            builder.RegisterType(type).As(interfaceType).Named(attr.RegKey, interfaceType).PropertiesAutowired().SingleInstance();
+                        }
+                        else
+                        {
+                            builder.RegisterType(type).As(interfaceType).PropertiesAutowired().SingleInstance();
+                        }
                     }
                     else
                     {
-                        builder.RegisterType(type).PropertiesAutowired().SingleInstance();
+                        if (!string.IsNullOrWhiteSpace(attr.RegKey))
+                        {
+                            builder.RegisterType(type).As(type).Named(attr.RegKey, type).PropertiesAutowired().SingleInstance();
+                        }
+                        else
+                        {
+                            builder.RegisterType(type).PropertiesAutowired().SingleInstance();
+                        }
                     }
                 }
 

@@ -5,6 +5,7 @@ using Easy.Common.NetCore.Consul;
 using Easy.Common.NetCore.Enums;
 using Easy.Common.NetCore.Filters;
 using Easy.Common.NetCore.IoC;
+using Easy.Common.NetCore.IoC.Autofac;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
@@ -182,10 +183,12 @@ namespace Easy.Common.NetCore.Startup
 
             var autofacContainer = app.ApplicationServices.GetAutofacRoot();
             var serviceLocator = new AutofacServiceLocator(autofacContainer);
+            EasyAutofac.Container = autofacContainer;
+            EasyAutofac.ServiceLocator = serviceLocator;
 
             var appStartup = new AppStartup()
-                .InitIoC(serviceLocator)
-                .CheckRedis();
+                                .InitIoC(serviceLocator)
+                                .CheckRedis();
 
             if (consulOption != null)
             {

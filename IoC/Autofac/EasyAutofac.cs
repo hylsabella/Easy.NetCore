@@ -10,12 +10,13 @@ namespace Easy.Common.NetCore.IoC.Autofac
 {
     public class EasyAutofac
     {
+        public static ContainerBuilder ContainerBuilder { get; private set; } = new ContainerBuilder();
+        public static IServiceLocator ServiceLocator { get; set; }
+        public static IComponentContext Container { get; set; }
+
         [ImportMany]
         private IEnumerable<IAutofacRegistrar> _autofacRegList = null;
-        public static ContainerBuilder ContainerBuilder { get; private set; } = new ContainerBuilder();
         private static object _lock = new object();
-        private static IServiceLocator _serviceLocator;
-        public static IContainer Container { get; set; }
 
         public EasyAutofac()
         {
@@ -57,15 +58,15 @@ namespace Easy.Common.NetCore.IoC.Autofac
         }
 
         /// <summary>
-        /// 获取IServiceLocator（会执行Build操作）
+        /// 获取IServiceLocator（重复调用最多只会执行一次Build操作）
         /// </summary>
-        public static IServiceLocator GetServiceLocator()
+        public static IServiceLocator BuildServiceLocator()
         {
-            if (_serviceLocator == null)
+            if (ServiceLocator == null)
             {
                 lock (_lock)
                 {
-                    if (_serviceLocator == null)
+                    if (ServiceLocator == null)
                     {
                         //生成容器
                         Container = ContainerBuilder.Build();
@@ -73,14 +74,14 @@ namespace Easy.Common.NetCore.IoC.Autofac
                         var serviceLocator = new AutofacServiceLocator(Container);
 
                         //设置通用IOC适配器
-                        ServiceLocator.SetLocatorProvider(() => serviceLocator);
+                        CommonServiceLocator.ServiceLocator.SetLocatorProvider(() => serviceLocator);
 
-                        _serviceLocator = serviceLocator;
+                        ServiceLocator = serviceLocator;
                     }
                 }
             }
 
-            return _serviceLocator;
+            return ServiceLocator;
         }
     }
 }
