@@ -152,6 +152,7 @@ namespace Easy.Common.NetCore.Startup
                                    ForwardedHeaders.XForwardedProto
             });
 
+            app.UseStaticFiles();
             app.UseRouting();
             app.UseAuthentication();//身份认证
             app.UseAuthorization();//授权
@@ -159,8 +160,6 @@ namespace Easy.Common.NetCore.Startup
 
             if (webType == WebType.Mvc)
             {
-                app.UseStaticFiles();
-
                 app.UseEndpoints(endpoints =>
                 {
                     endpoints.MapControllerRoute(
