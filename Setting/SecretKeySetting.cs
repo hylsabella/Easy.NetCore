@@ -2,9 +2,7 @@
 {
     public static class SecretKeySetting
     {
-        /// <summary>
-        /// Easy通用DES加密密钥（8位半角字符）
-        /// </summary>
-        public static string PlatformDESKey { get; } = "02AAF66AD8FD";
+        public static string DES_SecretKey { get; } = "02AAF66AD8FD";
+        public static string AES_SecretKey { get; } = "kOfdWSlp17FKuD95";
     }
 }

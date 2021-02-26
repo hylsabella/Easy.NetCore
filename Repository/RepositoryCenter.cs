@@ -29,7 +29,7 @@ namespace Easy.Common.NetCore.Repository
             if (isEncryption)
             {
                 //解密
-                connectionString = EncryptionHelper.DES解密(connectionString, SecretKeySetting.PlatformDESKey);
+                connectionString = EncryptionHelper.DES解密(connectionString, SecretKeySetting.DES_SecretKey);
             }
 
             return connectionString;

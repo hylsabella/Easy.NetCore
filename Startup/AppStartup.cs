@@ -3,7 +3,9 @@ using Autofac.Extensions.DependencyInjection;
 using Autofac.Extras.CommonServiceLocator;
 using Easy.Common.NetCore.Consul;
 using Easy.Common.NetCore.Enums;
+using Easy.Common.NetCore.Extentions;
 using Easy.Common.NetCore.Filters;
+using Easy.Common.NetCore.Helpers;
 using Easy.Common.NetCore.IoC;
 using Easy.Common.NetCore.IoC.Autofac;
 using FluentValidation.AspNetCore;
@@ -126,75 +128,111 @@ namespace Easy.Common.NetCore.Startup
                 .RegExtraIoC(builder);
         }
 
-        public static void EasyConfigure(IApplicationBuilder app, IWebHostEnvironment env, IConfiguration configuration, WebType webType, bool isHttpsRedirect = false, string mvcDefaultRoute = "{controller=Home}/{action=Index}/{id?}", string webApiName = "", ConsulOption consulOption = null)
+        public static void EasyConfigure(EasyConfigureReq req)
         {
-            if (env.IsDevelopment())
+            try
             {
-                app.UseDeveloperExceptionPage();
-            }
+                if (req.App == null) throw new Exception("IApplicationBuilder不能为空");
+                if (req.Env == null) throw new Exception("IWebHostEnvironment不能为空");
+                if (req.Configuration == null) throw new Exception("IConfiguration不能为空");
+                if (!req.WebType.IsInDefined()) throw new Exception("WebType不合法");
 
-            if (!env.IsDevelopment() && webType == WebType.Mvc)
-            {
-                string errorRedirect = configuration?["appSettings:ErrorRedirect"];
-                errorRedirect = !string.IsNullOrWhiteSpace(errorRedirect) ? errorRedirect.Trim() : "/Home/Error";
-                app.UseExceptionHandler(errorRedirect);
-            }
-
-            if (isHttpsRedirect)
-            {
-                app.UseHttpsRedirection();
-            }
-
-            //配置中间件以转接 X-Forwarded-For 和 X-Forwarded-Proto 标头
-            app.UseForwardedHeaders(new ForwardedHeadersOptions
-            {
-                ForwardedHeaders = ForwardedHeaders.XForwardedFor |
-                                   ForwardedHeaders.XForwardedProto
-            });
-
-            app.UseStaticFiles();
-            app.UseRouting();
-            app.UseAuthentication();//身份认证
-            app.UseAuthorization();//授权
-            app.UseResponseCompression();//添加gzip压缩中间件
-
-            if (webType == WebType.Mvc)
-            {
-                app.UseEndpoints(endpoints =>
+                if (req.Env.IsDevelopment())
                 {
-                    endpoints.MapControllerRoute(
-                        name: "default",
-                        pattern: mvcDefaultRoute?.Trim() ?? "{controller=Home}/{action=Index}/{id?}");
+                    req.App.UseDeveloperExceptionPage();
+                }
+
+                if (!req.Env.IsDevelopment() && req.WebType == WebType.Mvc)
+                {
+                    string errorRedirect = req.Configuration?["appSettings:ErrorRedirect"];
+                    errorRedirect = !string.IsNullOrWhiteSpace(errorRedirect) ? errorRedirect.Trim() : "/Home/Error";
+                    req.App.UseExceptionHandler(errorRedirect);
+                }
+
+                if (req.IsHttpsRedirect)
+                {
+                    req.App.UseHttpsRedirection();
+                }
+
+                //配置中间件以转接 X-Forwarded-For 和 X-Forwarded-Proto 标头
+                req.App.UseForwardedHeaders(new ForwardedHeadersOptions
+                {
+                    ForwardedHeaders = ForwardedHeaders.XForwardedFor |
+                                       ForwardedHeaders.XForwardedProto
                 });
-            }
-            else if (webType == WebType.WebApi)
-            {
-                app.UseEndpoints(endpoints =>
+
+                req.App.UseStaticFiles();
+                req.App.UseRouting();
+
+                if (string.IsNullOrWhiteSpace(req.CorsKey))
                 {
-                    endpoints.MapGet("/", async context =>
+                    req.App.UseCors();
+                }
+                else
+                {
+                    req.App.UseCors(req.CorsKey);
+                }
+
+                req.App.UseAuthentication();//身份认证
+                req.App.UseAuthorization();//授权
+                req.App.UseResponseCompression();//添加gzip压缩中间件
+
+                if (req.WebType == WebType.Mvc)
+                {
+                    req.App.UseEndpoints(endpoints =>
                     {
-                        await context.Response.WriteAsync($"WebApi is OK! {webApiName}");
+                        endpoints.MapControllerRoute(
+                            name: "default",
+                            pattern: req.MvcDefaultRoute?.Trim() ?? "{controller=Home}/{action=Index}/{id?}");
                     });
+                }
+                else if (req.WebType == WebType.WebApi)
+                {
+                    req.App.UseEndpoints(endpoints =>
+                    {
+                        endpoints.MapGet("/", async context =>
+                        {
+                            await context.Response.WriteAsync($"WebApi is OK! {req.WebApiName}");
+                        });
 
-                    endpoints.MapControllers();
-                });
+                        endpoints.MapControllers();
+                    });
+                }
+
+                var autofacContainer = req.App.ApplicationServices.GetAutofacRoot();
+                var serviceLocator = new AutofacServiceLocator(autofacContainer);
+                EasyAutofac.Container = autofacContainer;
+                EasyAutofac.ServiceLocator = serviceLocator;
+
+                var appStartup = new AppStartup()
+                                    .InitIoC(serviceLocator)
+                                    .CheckRedis();
+
+                if (req.ConsulOption != null)
+                {
+                    appStartup.RegisterConsul(req.ConsulOption, req.App);
+                }
+
+                appStartup.Start();
             }
-
-            var autofacContainer = app.ApplicationServices.GetAutofacRoot();
-            var serviceLocator = new AutofacServiceLocator(autofacContainer);
-            EasyAutofac.Container = autofacContainer;
-            EasyAutofac.ServiceLocator = serviceLocator;
-
-            var appStartup = new AppStartup()
-                                .InitIoC(serviceLocator)
-                                .CheckRedis();
-
-            if (consulOption != null)
+            catch (Exception ex)
             {
-                appStartup.RegisterConsul(consulOption, app);
+                LogHelper.Error(ex, "EasyConfigure出错");
+                throw;
             }
-
-            appStartup.Start();
         }
+    }
+
+    public class EasyConfigureReq
+    {
+        public IApplicationBuilder App { get; set; }
+        public IWebHostEnvironment Env { get; set; }
+        public IConfiguration Configuration { get; set; }
+        public WebType WebType { get; set; }
+        public bool IsHttpsRedirect { get; set; }
+        public string MvcDefaultRoute { get; set; } = "{controller=Home}/{action=Index}/{id?}";
+        public string WebApiName { get; set; }
+        public ConsulOption ConsulOption { get; set; }
+        public string CorsKey { get; set; }
     }
 }
