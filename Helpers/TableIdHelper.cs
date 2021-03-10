@@ -17,7 +17,7 @@ namespace Easy.Common.NetCore.Helpers
         /// <summary>
         /// 当前的最大分表Id（注：扩充表时记得修改此值）
         /// </summary>
-        public static int MaxTableIndex { get; } = 9;
+        public const int MaxTableIndex = 9;
 
         /// <summary>
         /// 严重警告【分表的ID算法是不能改变的！！！】
