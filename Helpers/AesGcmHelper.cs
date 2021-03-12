@@ -11,12 +11,10 @@ namespace Easy.Common.NetCore.Helpers
     /// <summary>
     /// Code taken from this Stack question: 
     /// http://codereview.stackexchange.com/questions/14892/review-of-simplified-secure-encryption-of-a-string
-    /// 
     /// The below code uses AES GCM using a 256bit key.
-    /// 
     /// A non secret payload byte[] can be provided as well that won't be encrypted but will be authenticated with GCM.
     /// </summary>
-    public class AesGcmSvc
+    public class AesGcmHelper
     {
         #region Constants and Fields
 
@@ -34,11 +32,11 @@ namespace Easy.Common.NetCore.Helpers
 
         #region Constructors and Destructors
 
-        public AesGcmSvc()
+        public AesGcmHelper()
             : this(DEFAULT_KEY_BIT_SIZE, DEFAULT_MAC_BIT_SIZE, DEFAULT_NONCE_BIT_SIZE)
         { }
 
-        public AesGcmSvc(int keyBitSize, int macBitSize, int nonceBitSize)
+        public AesGcmHelper(int keyBitSize, int macBitSize, int nonceBitSize)
         {
             _random = new SecureRandom();
 
