@@ -9,7 +9,7 @@ namespace Easy.Common.NetCore.IoC.Autofac
 {
     public static class ContainerBuilderExt
     {
-        public static void RegisterRepoAndSvc(this ContainerBuilder builder, DataBaseType dataBaseType, Assembly repoAssembly, Assembly unitSvcAssembly, Assembly integrateSvcAssembly)
+        public static void RegisterRepositoryAndSvc(this ContainerBuilder builder, DataBaseType dataBaseType, Assembly repoAssembly, Assembly unitSvcAssembly, Assembly integrateSvcAssembly)
         {
             if (!dataBaseType.IsInDefined()) throw new Exception($"数据库类型dataBaseType：{dataBaseType}不合法");
             if (repoAssembly == null) throw new Exception($"repoAssembly程序集不能为空");
