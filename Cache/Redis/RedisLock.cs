@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 
 namespace Easy.Common.NetCore.Cache.Redis
 {
@@ -183,7 +183,7 @@ namespace Easy.Common.NetCore.Cache.Redis
                     return true;
                 }
 
-                Thread.Sleep(rnd.Next(maxRetryDelay));
+                Task.Delay(maxRetryDelay).Wait();
             }
 
             return false;
