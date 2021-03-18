@@ -4,18 +4,38 @@ namespace Easy.Common.NetCore.Extentions
 {
     public static class DateTimeExt
     {
-        public static long GetTimeStamp(this DateTime target, int year = 1970, int month = 1, int day = 1)
+        public static long GetTimeStampBySecond(this DateTime target)
         {
-            DateTime startTime = TimeZoneInfo.ConvertTime(new DateTime(year, month, day), TimeZoneInfo.Local);
+            DateTimeOffset dto = new DateTimeOffset(target);
 
-            return Convert.ToInt64((target - startTime).TotalMilliseconds);
+            var result = dto.ToUnixTimeSeconds();
+
+            return result;
         }
 
-        public static DateTime GetTimeByTimeStamp(this long timeStamp)
+        public static DateTime GetDateTimeBySecondTimeStamp(this long timeStamp)
         {
-            DateTime dtStart = TimeZoneInfo.ConvertTime(new DateTime(1970, 1, 1), TimeZoneInfo.Local);
+            var dto = DateTimeOffset.FromUnixTimeSeconds(timeStamp);
 
-            DateTime result = dtStart.AddSeconds(timeStamp);
+            var result = dto.ToLocalTime().DateTime;
+
+            return result;
+        }
+
+        public static long GetTimeStampByMiSecond(this DateTime target)
+        {
+            DateTimeOffset dto = new DateTimeOffset(target);
+
+            var result = dto.ToUnixTimeMilliseconds();
+
+            return result;
+        }
+
+        public static DateTime GetDateTimeByMiSecondTimeStamp(this long timeStamp)
+        {
+            var dto = DateTimeOffset.FromUnixTimeMilliseconds(timeStamp);
+
+            var result = dto.ToLocalTime().DateTime;
 
             return result;
         }

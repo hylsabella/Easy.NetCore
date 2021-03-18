@@ -111,7 +111,7 @@ namespace Easy.Common.NetCore.Helpers
         /// </summary>
         private static long GetTimeStamp()
         {
-            return DateTime.Now.GetTimeStamp(2016, 1, 1);
+            return DateTime.Now.GetTimeStampByMiSecond();
         }
     }
 
