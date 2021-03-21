@@ -2,6 +2,7 @@
 using CommonServiceLocator;
 using Easy.Common.NetCore.Cache;
 using Easy.Common.NetCore.Cache.Redis;
+using Easy.Common.NetCore.Cloud;
 using Easy.Common.NetCore.Enums;
 using Easy.Common.NetCore.IoC;
 using Easy.Common.NetCore.IoC.Autofac;
@@ -131,7 +132,7 @@ namespace Easy.Common.NetCore.Startup
         /// </summary>
         public static AppStartup RegRedisCache(this AppStartup startup, ContainerBuilder builder = null, TimeSpan? cacheExpires = null)
         {
-            if (builder == null && EasyIocContainer.Container != null) throw new Exception("注册Redis必须在初始化IOC容器生成之前完成！");
+            if (builder == null && EasyIocContainer.Container != null) throw new Exception("注册Redis必须在InitIoC容器生成之前完成！");
 
             RedisCache redisCache = null;
 
@@ -254,6 +255,29 @@ namespace Easy.Common.NetCore.Startup
             sb.AppendLine($"可用工作线程：{workThread}，可用IO线程：{completeThread}");
 
             logger.Info(sb.ToString());
+
+            return startup;
+        }
+
+        public static AppStartup ConfigAliyunOSS(this AppStartup startup, IConfiguration configuration, ContainerBuilder builder = null)
+        {
+            if (configuration == null) throw new Exception("配置configuration不能为空");
+            if (builder == null && EasyIocContainer.Container != null) throw new Exception("注册AliyunOSS必须在InitIoC容器生成之前完成！");
+
+            string endpoint = configuration["appSettings:AliyunOSS.Endpoint"];
+            string accessKeyId = configuration["appSettings:AliyunOSS.AccessKeyId"];
+            string accessKeySecret = configuration["appSettings:AliyunOSS.AccessKeySecret"];
+
+            var aliyunOSS = new AliyunOSS(endpoint, accessKeyId, accessKeySecret);
+
+            if (builder == null)
+            {
+                EasyAutofac.ContainerBuilder.Register(c => aliyunOSS).As<AliyunOSS>().PropertiesAutowired().SingleInstance();
+            }
+            else
+            {
+                builder.Register(c => aliyunOSS).As<AliyunOSS>().PropertiesAutowired().SingleInstance();
+            }
 
             return startup;
         }
