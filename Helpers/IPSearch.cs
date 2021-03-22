@@ -58,11 +58,7 @@ namespace Easy.Common.NetCore.Helpers
         /// </summary>
         public IPSearch(string dataPath)
         {
-            using (FileStream fs = new FileStream(dataPath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                data = new byte[fs.Length];
-                fs.Read(data, 0, data.Length);
-            }
+            data = File.ReadAllBytes(dataPath);
 
             long firstStartIpOffset = BytesToLong(data[0], data[1], data[2], data[3]);//索引区第一条流位置
             long lastStartIpOffset = BytesToLong(data[4], data[5], data[6], data[7]);//索引区最后一条流位置
