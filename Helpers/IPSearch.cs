@@ -1,52 +1,60 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Text;
 
 namespace Easy.Common.NetCore.Helpers
 {
     /*
-    高性能IP数据库格式详解 qqzeng-ip.dat
+
+    高性能IP数据库格式详解 qqzeng-ip.dat 2.0版 每秒解析900多万ip
     
     编码：UTF8  字节序：Little-Endian  
+
     返回多个字段信息（如：亚洲|中国|香港|九龙|油尖旺|新世界电讯|810200|Hong Kong|HK|114.17495|22.327115）
     
-    ------------------------ 文件结构 ---------------------------
+    ------------------------ 文件结构 2.0  -------------------------
+
     //文件头    16字节(4-4-4-4)
     [索引区第一条流位置][索引区最后一条流位置][前缀区第一条的流位置][前缀区最后一条的流位置] 
+
     //内容区    长度无限制
     [地区信息][地区信息]……唯一不重复
+
+
     //索引区    12字节(4-4-3-1)
     [起始IP][结束IP][地区流位置][流长度]
+
+
     //前缀区   9字节(1-4-4)
     [0-255][索引区start索引][索引区end索引]
+
     ------------------------ 文件结构 ---------------------------
+
     优势：索引区分为[起始IP][结束IP][地区偏移][长度],减少多级偏移跳转步骤和长度的解析,提高效率;
          根据ip第一位数字作为前缀,解析出以这个数字为前缀的第一个索引和最后一个索引,缩小查询区间,
          然后在这区间再用二分查找快速查找到对应区间,效率提高几个等级    
-    压缩：原版txt为15M,生成这种dat结构为2.45M 
-    性能：解析100万ip耗时0.423秒
-    对比：相比其他dat更简洁更高效
-    创建：qqzeng-ip 于 2015-08-05
 
-    （调用例子）：
-    IPSearch finder = new IPSearch("qqzeng-ip.dat");
-    string result = finder.Query("1.2.3.4");
-   --> result="亚洲|中国|香港|九龙|油尖旺|新世界电讯|810200|Hong Kong|HK|114.17495|22.327115"
+    压缩：原版txt为38M,生成这种dat结构为5.16M 
+
+    性能：每秒解析900多万 (环境：CPU i7-7700K  + DDR2400 16G  + win10 X64)
+
+    对比：相比其他dat更简洁更高效
+
+    创建：qqzeng-ip 于 2015-08-01 
+    
+    优化：qqzeng-ip 于 2018-04-08 
+
     */
+
     public class IPSearch
     {
-        private readonly Dictionary<uint, PrefixIndex> prefixDict;
-        private readonly byte[] indexBuffer;
-        private readonly byte[] data;
-        private readonly long firstStartIpOffset;//索引区第一条流位置
-        private readonly long prefixStartOffset;//前缀区第一条的流位置
-        private readonly long prefixEndOffset;//前缀区最后一条的流位置
-        private readonly long prefixCount;  //前缀数量
+        private long[,] prefmap;
+        private uint[,] ipmap;
+        private string[] addrArr;
+        private byte[] data;
 
         /// <summary>
-        /// 初始化二进制dat数据
+        /// 初始化二进制 qqzeng-ip-utf8.dat 数据
         /// </summary>
         public IPSearch(string dataPath)
         {
@@ -56,87 +64,97 @@ namespace Easy.Common.NetCore.Helpers
                 fs.Read(data, 0, data.Length);
             }
 
-            firstStartIpOffset = BytesToLong(data[0], data[1], data[2], data[3]);
-            //long lastStartIpOffset = BytesToLong(data[4], data[5], data[6], data[7]);
-            prefixStartOffset = BytesToLong(data[8], data[9], data[10], data[11]);
-            prefixEndOffset = BytesToLong(data[12], data[13], data[14], data[15]);
+            long firstStartIpOffset = BytesToLong(data[0], data[1], data[2], data[3]);//索引区第一条流位置
+            long lastStartIpOffset = BytesToLong(data[4], data[5], data[6], data[7]);//索引区最后一条流位置
+            long prefixStartOffset = BytesToLong(data[8], data[9], data[10], data[11]);//前缀区第一条的流位置
+            long prefixEndOffset = BytesToLong(data[12], data[13], data[14], data[15]);//前缀区最后一条的流位置
 
-            //long ipCount = (lastStartIpOffset - firstStartIpOffset) / 12 + 1; //索引区块每组 12字节
+            //prefixCount 不固定为256 方便以后自由定制  全球版 国内版  国外版 或者某部分 都可以
 
-            //prefixCount 不固定为256 方便以后自由定制 国内版  国外版 全球版 或者某部分 都可以
-            prefixCount = (prefixEndOffset - prefixStartOffset) / 9 + 1; //前缀区块每组 9字节
+            long ipCount = (lastStartIpOffset - firstStartIpOffset) / 12 + 1; //索引区块每组 12字节     //ip段数量      
+            long prefixCount = (prefixEndOffset - prefixStartOffset) / 9 + 1; //前缀区块每组 9字节 //前缀数量
+
+            prefmap = new long[256, 2];
 
             //初始化前缀对应索引区区间
-            indexBuffer = new byte[prefixCount * 9];
-            Array.Copy(data, prefixStartOffset, indexBuffer, 0, prefixCount * 9);
-            prefixDict = new Dictionary<uint, PrefixIndex>();
-
+            byte[] indexBuffer = new byte[prefixCount * 9];
+            Buffer.BlockCopy(data, (int)prefixStartOffset, indexBuffer, 0, (int)prefixCount * 9);
+            int m = 0;
             for (var k = 0; k < prefixCount; k++)
             {
                 int i = k * 9;
-                uint prefix = (uint)indexBuffer[i];
-                long start_index = BytesToLong(indexBuffer[i + 1], indexBuffer[i + 2], indexBuffer[i + 3], indexBuffer[i + 4]);
-                long end_index = BytesToLong(indexBuffer[i + 5], indexBuffer[i + 6], indexBuffer[i + 7], indexBuffer[i + 8]);
-                prefixDict.Add(prefix, new PrefixIndex() { Prefix = prefix, StartIndex = start_index, EndIndex = end_index });
+                int n = indexBuffer[i];
+                prefmap[n, 0] = BytesToLong(indexBuffer[i + 1], indexBuffer[i + 2], indexBuffer[i + 3], indexBuffer[i + 4]);
+                prefmap[n, 1] = BytesToLong(indexBuffer[i + 5], indexBuffer[i + 6], indexBuffer[i + 7], indexBuffer[i + 8]);
+                if (m < n)
+                {
+                    for (; m < n; m++)
+                    {
+                        prefmap[m, 0] = 0; prefmap[m, 1] = 0;
+                    }
+                    m++;
+                }
+                else
+                {
+                    m++;
+                }
+            }
+
+            //初始化 索引区间
+            ipmap = new uint[ipCount, 2];
+            addrArr = new string[ipCount];
+            for (int i = 0; i < ipCount; i++)
+            {
+                long p = firstStartIpOffset + (i * 12);
+                uint startip = BytesToLong(data[p], data[1 + p], data[2 + p], data[3 + p]);
+                uint endip = BytesToLong(data[4 + p], data[5 + p], data[6 + p], data[7 + p]);
+                int offset = data[8 + p] + ((data[9 + p]) << 8) + ((data[10 + p]) << 16);
+                int length = data[11 + p];
+
+                ipmap[i, 0] = startip;
+                ipmap[i, 1] = endip;
+                addrArr[i] = Encoding.UTF8.GetString(data, offset, length);
             }
         }
 
-        public static uint IpToInt(string ip, out uint prefix)
-        {
-            byte[] bytes = IPAddress.Parse(ip).GetAddressBytes();
-            prefix = bytes[0];
-            return bytes[3] + (((uint)bytes[2]) << 8) + (((uint)bytes[1]) << 16) + (((uint)bytes[0]) << 24);
-        }
-
-        public static string IntToIP(uint ip_Int)
-        {
-            return new IPAddress(ip_Int).ToString();
-        }
-
         /// <summary>
-        /// 根据ip查询多维字段信息
+        /// ip快速查询方法
         /// </summary>
-        /// <param name="ip">ip地址（123.4.5.6）</param>
+        /// <param name="ip">ip地址（1.4.5.6）</param>
         /// <returns>亚洲|中国|香港|九龙|油尖旺|新世界电讯|810200|Hong Kong|HK|114.17495|22.327115</returns>
         public string Query(string ip)
         {
-            uint intIP = IpToInt(ip, out uint ip_prefix_value);
+            long val = IpToInt(ip, out long pref);
+            long low = prefmap[pref, 0], high = prefmap[pref, 1];
 
-            if (!prefixDict.ContainsKey(ip_prefix_value))
+            if (high == 0)
             {
-                return string.Empty;
+                return "";
             }
 
-            uint low = (uint)prefixDict[ip_prefix_value].StartIndex;
-            uint high = (uint)prefixDict[ip_prefix_value].EndIndex;
-
-            uint my_index = low == high ? low : BinarySearch(low, high, intIP);
-
-            GetIndex(my_index, out uint startIp, out uint endIp, out uint local_offset, out uint local_length);
-
-            if ((startIp <= intIP) && (endIp >= intIP))
+            long cur = low == high ? low : BinarySearch(low, high, val);
+            if (ipmap[cur, 0] <= val && ipmap[cur, 1] >= val)
             {
-                return GetLocal(local_offset, local_length);
+                return addrArr[cur];
             }
             else
             {
-                return string.Empty;
+                return "";
             }
         }
 
         /// <summary>
-        /// 二分逼近算法
+        /// 二分逼近算法 O(logN)
         /// </summary>
-        public uint BinarySearch(uint low, uint high, uint k)
+        public long BinarySearch(long low, long high, long k)
         {
-            uint M = 0;
+            long M = 0;
 
             while (low <= high)
             {
-                uint mid = (low + high) / 2;
+                long mid = (low + high) / 2;
 
-                uint endipNum = GetEndIp(mid);
-
+                uint endipNum = ipmap[mid, 1];
                 if (endipNum >= k)
                 {
                     M = mid;
@@ -156,60 +174,94 @@ namespace Easy.Common.NetCore.Helpers
         }
 
         /// <summary>
-        /// 在索引区解析
-        /// </summary>
-        /// <param name="left">ip第left个索引</param>
-        /// <param name="startip">返回开始ip的数值</param>
-        /// <param name="endip">返回结束ip的数值</param>
-        /// <param name="local_offset">返回地址信息的流位置</param>
-        /// <param name="local_length">返回地址信息的流长度</param>
-        private void GetIndex(uint left, out uint startip, out uint endip, out uint local_offset, out uint local_length)
-        {
-            long left_offset = firstStartIpOffset + (left * 12);
-            startip = BytesToLong(data[left_offset], data[1 + left_offset], data[2 + left_offset], data[3 + left_offset]);
-            endip = BytesToLong(data[4 + left_offset], data[5 + left_offset], data[6 + left_offset], data[7 + left_offset]);
-            local_offset = data[8 + left_offset] + (((uint)data[9 + left_offset]) << 8) + (((uint)data[10 + left_offset]) << 16);
-            local_length = data[11 + left_offset];
-        }
-
-        /// <summary>
-        /// 只获取结束ip的数值
-        /// </summary>
-        /// <param name="left">索引区第left个索引</param>
-        /// <returns>返回结束ip的数值</returns>
-        private uint GetEndIp(uint left)
-        {
-            long left_offset = firstStartIpOffset + (left * 12);
-            return BytesToLong(data[4 + left_offset], data[5 + left_offset], data[6 + left_offset], data[7 + left_offset]);
-
-        }
-
-        /// <summary>
-        /// 返回地址信息
-        /// </summary>
-        /// <param name="local_offset">地址信息的流位置</param>
-        /// <param name="local_length">地址信息的流长度</param>
-        /// <returns></returns>
-        private string GetLocal(uint local_offset, uint local_length)
-        {
-            byte[] buf = new byte[local_length];
-            Array.Copy(data, local_offset, buf, 0, local_length);
-            return Encoding.UTF8.GetString(buf, 0, (int)local_length);
-        }
-
-        /// <summary>
         /// 字节转整形 小节序 
-        /// </summary>
-        private static uint BytesToLong(byte a, byte b, byte c, byte d)
+        /// </summary>     
+        private uint BytesToLong(byte a, byte b, byte c, byte d)
         {
-            return ((uint)a << 0) | ((uint)b << 8) | ((uint)c << 16) | ((uint)d << 24);
+            return (uint)(a | (b << 8) | (c << 16) | (d << 24));
         }
-    }
 
-    public class PrefixIndex
-    {
-        public uint Prefix { get; set; }
-        public long StartIndex { get; set; }
-        public long EndIndex { get; set; }
+        public static long IpToInt(string ipString, out long prefix)
+        {
+            //最高性能
+            int end = ipString.Length;
+            unsafe
+            {
+                fixed (char* name = ipString)
+                {
+                    int numberBase = 10;
+                    char ch;
+                    long[] parts = new long[4];
+                    long currentValue = 0;
+                    int dotCount = 0;
+                    int current = 0;
+
+                    for (; current < end; current++)
+                    {
+                        ch = name[current];
+                        currentValue = 0;
+
+                        numberBase = 10;
+                        if (ch == '0')
+                        {
+                            numberBase = 8;
+                            current++;
+
+                            if (current < end)
+                            {
+                                ch = name[current];
+                                if (ch == 'x' || ch == 'X')
+                                {
+                                    numberBase = 16;
+                                    current++;
+                                }
+                            }
+                        }
+
+                        for (; current < end; current++)
+                        {
+                            ch = name[current];
+                            int digitValue;
+
+                            if ((numberBase == 10 || numberBase == 16) && '0' <= ch && ch <= '9')
+                            {
+                                digitValue = ch - '0';
+                            }
+                            else if (numberBase == 8 && '0' <= ch && ch <= '7')
+                            {
+                                digitValue = ch - '0';
+                            }
+                            else if (numberBase == 16 && 'a' <= ch && ch <= 'f')
+                            {
+                                digitValue = ch + 10 - 'a';
+                            }
+                            else if (numberBase == 16 && 'A' <= ch && ch <= 'F')
+                            {
+                                digitValue = ch + 10 - 'A';
+                            }
+                            else
+                            {
+                                break;
+                            }
+
+                            currentValue = (currentValue * numberBase) + digitValue;
+                        }
+
+                        if (current < end && name[current] == '.')
+                        {
+                            parts[dotCount] = currentValue;
+                            dotCount++;
+                            continue;
+                        }
+
+                        break;
+                    }
+
+                    parts[dotCount] = currentValue;
+                    prefix = parts[0];
+                    return (parts[0] << 24) | ((parts[1] & 0xff) << 16) | ((parts[2] & 0xff) << 8) | (parts[3] & 0xff);
+                }
+            }
+        }
     }
 }

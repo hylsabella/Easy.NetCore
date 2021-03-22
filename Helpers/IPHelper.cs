@@ -5,10 +5,9 @@ namespace Easy.Common.NetCore.Helpers
 {
     public static class IPHelper
     {
-        public static (string province, string city) GetCityByIP(string ip)
+        public static string GetCityByIP(string ip)
         {
-            string province = string.Empty;
-            string city = string.Empty;
+            string position = string.Empty;
 
             try
             {
@@ -23,12 +22,22 @@ namespace Easy.Common.NetCore.Helpers
 
                     if (ipList.Length >= 3)
                     {
-                        province = ipList[2];
+                        position += ipList[2] + " ";
                     }
 
                     if (ipList.Length >= 4)
                     {
-                        city = ipList[3];
+                        position += ipList[3] + " ";
+                    }
+
+                    if (ipList.Length >= 5)
+                    {
+                        position += ipList[4] + " ";
+                    }
+
+                    if (ipList.Length >= 6)
+                    {
+                        position += ipList[5] + " ";
                     }
                 }
             }
@@ -37,7 +46,7 @@ namespace Easy.Common.NetCore.Helpers
                 LogHelper.Error(ex, "GetCityByIP出错");
             }
 
-            return (province, city);
+            return position.Trim();
         }
     }
 }
