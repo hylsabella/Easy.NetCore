@@ -121,9 +121,9 @@ namespace Easy.Common.NetCore.MQ
                         continue;
                     }
 
-                    for (uint num = 1; num <= attr.ParallelNum; num++)
+                    for (uint index = 1; index <= attr.ParallelNum; index++)
                     {
-                        yield return new MqConsumerExecutor(attr.RouteName, attr.PrefetchCount, attr.PrefetchSize, attr.AutoAck, num, typeInfo, method, parameters);
+                        yield return new MqConsumerExecutor(attr.RouteName, attr.PrefetchCount, attr.PrefetchSize, attr.AutoAck, index, typeInfo, method, parameters);
                     }
                 }
             }
