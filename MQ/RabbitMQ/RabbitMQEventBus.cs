@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using RabbitMQ.Client;
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Easy.Common.NetCore.MQ.RabbitMQ
@@ -22,8 +23,15 @@ namespace Easy.Common.NetCore.MQ.RabbitMQ
         /// <returns>是否成功投递到队列</returns>
         public bool Publish<T>(string routingKey, MqMessage<T> message,
             EventHandler<MqEventBusFeedBackEventArgs> ackEvent = null,
-            EventHandler<MqEventBusFeedBackEventArgs> noAckEvent = null)
+            EventHandler<MqEventBusFeedBackEventArgs> noAckEvent = null,
+            MqExpiresInfo mqExpiresInfo = null)
         {
+            bool isExpires = mqExpiresInfo != null;//是否过期
+            if (isExpires)
+            {
+                routingKey = $"{routingKey}-IsSameExpires:{mqExpiresInfo.IsSameExpires}";
+            }
+
             string exchangeName = routingKey;
             string queueName = routingKey;
 
@@ -38,7 +46,27 @@ namespace Easy.Common.NetCore.MQ.RabbitMQ
                     //当Queue中的 autoDelete 属性被设置为true时，那么，当消息消费者宕机，关闭后，消息队列则会删除，消息发送者一直发送消息，当消息消费者重新启动恢复正常后，会接收最新的消息，而宕机期间的消息则会丢失
                     //当Quere中的 autoDelete 属性被设置为false时，那么，当消息消费者宕机，关闭后，消息队列不会删除，消息发送者一直发送消息，当消息消费者重新启动恢复正常后，会接收包括宕机期间的消息。
                     //exclusive：是否排外的，有两个作用，一：当连接关闭时connection.close()该队列是否会自动删除；二：该队列是否是私有的private，如果不是排外的，可以使用两个消费者都访问同一个队列，没有任何问题，如果是排外的，会对当前队列加锁，其他通道channel是不能访问的，如果强制访问会报异常
-                    channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
+
+                    Dictionary<string, object> arguments = null;
+
+                    if (isExpires)
+                    {
+                        arguments = new Dictionary<string, object>();
+                        arguments.Add("x-dead-letter-exchange", mqExpiresInfo.ExpiresRoutingKey);//过期消息转向路由  
+                        arguments.Add("x-dead-letter-routing-key", mqExpiresInfo.ExpiresRoutingKey);//过期消息转向路由相匹配routingke
+
+                        if (mqExpiresInfo.IsSameExpires)
+                        {
+                            int messagettl = (int)mqExpiresInfo.Expires.TotalMilliseconds;
+                            int queueExpires = (messagettl * 3) + (int)TimeSpan.FromMinutes(10).TotalMilliseconds;
+
+                            //当同时指定了x-expires和x-message-ttl的TTL值，则两者中较小的那个才会起作用。
+                            arguments.Add("x-expires", queueExpires);//队列有效期，当队列在指定时间没有被访问(consume, basicGet等)就会被删除
+                            arguments.Add("x-message-ttl", messagettl);//队列上所有消息过期时间，应小于队列过期时间  
+                        }
+                    }
+
+                    channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: arguments);
 
                     //绑定消息队列，交换器，routingkey
                     channel.QueueBind(queue: queueName, exchange: exchangeName, routingKey: queueName);
@@ -71,6 +99,12 @@ namespace Easy.Common.NetCore.MQ.RabbitMQ
                     var properties = channel.CreateBasicProperties();
                     //将消息标记为持久性
                     properties.Persistent = true;
+
+                    if (isExpires && !mqExpiresInfo.IsSameExpires)
+                    {
+                        int messagettl = (int)mqExpiresInfo.Expires.TotalMilliseconds;
+                        properties.Expiration = messagettl.ToString();
+                    }
 
                     string messageJson = JsonConvert.SerializeObject(message);
                     byte[] body = Encoding.UTF8.GetBytes(messageJson);
