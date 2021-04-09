@@ -8,6 +8,13 @@ namespace Easy.Common.NetCore.Extentions
 {
     public static class EnumExt
     {
+        public static T ToEnum<T>(this string enumString) where T : Enum
+        {
+            if (string.IsNullOrWhiteSpace(enumString)) return default;
+
+            return (T)Enum.Parse(typeof(T), enumString);
+        }
+
         public static string GetEnumDescription(this Enum enumValue)
         {
             string str = enumValue.ToString();
