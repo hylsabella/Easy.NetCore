@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 
@@ -8,11 +9,27 @@ namespace Easy.Common.NetCore.Extentions
 {
     public static class EnumExt
     {
-        public static T ToEnum<T>(this string enumString) where T : Enum
+        public static T ToEnum<T>(this string enumName) where T : Enum
         {
-            if (string.IsNullOrWhiteSpace(enumString)) return default;
+            if (string.IsNullOrWhiteSpace(enumName)) return default;
 
-            return (T)Enum.Parse(typeof(T), enumString);
+            return (T)Enum.Parse(typeof(T), enumName);
+        }
+
+        public static T ToEnumByDesc<T>(this string enumDescription) where T : Enum
+        {
+            if (string.IsNullOrWhiteSpace(enumDescription)) return default;
+
+            foreach (T value in Enum.GetValues(typeof(T)))
+            {
+                string desc = value.GetEnumDescription();
+                if (desc == enumDescription)
+                {
+                    return value;
+                }
+            }
+
+            return default;
         }
 
         public static string GetEnumDescription(this Enum enumValue)
@@ -26,14 +43,14 @@ namespace Easy.Common.NetCore.Extentions
                 return str;
             }
 
-            object[] objs = field.GetCustomAttributes(typeof(System.ComponentModel.DescriptionAttribute), false);
+            object[] objs = field.GetCustomAttributes(typeof(DescriptionAttribute), false);
 
             if (objs == null || objs.Length == 0)
             {
                 return str;
             }
 
-            var da = (System.ComponentModel.DescriptionAttribute)objs[0];
+            var da = (DescriptionAttribute)objs[0];
 
             return da.Description;
         }
