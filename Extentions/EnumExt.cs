@@ -11,14 +11,14 @@ namespace Easy.Common.NetCore.Extentions
     {
         public static T ToEnum<T>(this string enumName) where T : Enum
         {
-            if (string.IsNullOrWhiteSpace(enumName)) return default;
+            if (string.IsNullOrWhiteSpace(enumName)) throw new Exception("enumName不能为空");
 
             return (T)Enum.Parse(typeof(T), enumName);
         }
 
         public static T ToEnumByDesc<T>(this string enumDescription) where T : Enum
         {
-            if (string.IsNullOrWhiteSpace(enumDescription)) return default;
+            if (string.IsNullOrWhiteSpace(enumDescription)) throw new Exception("enumDescription不能为空");
 
             foreach (T value in Enum.GetValues(typeof(T)))
             {
@@ -29,7 +29,7 @@ namespace Easy.Common.NetCore.Extentions
                 }
             }
 
-            return default;
+            throw new Exception($"未能找到【{enumDescription}】对应的枚举类型");
         }
 
         public static string GetEnumDescription(this Enum enumValue)
