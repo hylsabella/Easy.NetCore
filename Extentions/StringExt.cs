@@ -259,13 +259,16 @@ namespace Easy.Common.NetCore.Extentions
 
             byte[] bytData = Encoding.Unicode.GetBytes(strUncompressed);
 
-            MemoryStream ms = new MemoryStream();
-            Stream stream = new GZipStream(ms, CompressionMode.Compress);
-            stream.Write(bytData, 0, bytData.Length);
-            stream.Close();
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (Stream stream = new GZipStream(ms, CompressionMode.Compress))
+                {
+                    stream.Write(bytData, 0, bytData.Length);
 
-            byte[] dataCompressed = ms.ToArray();
-            return Convert.ToBase64String(dataCompressed, 0, dataCompressed.Length);
+                    byte[] dataCompressed = ms.ToArray();
+                    return Convert.ToBase64String(dataCompressed, 0, dataCompressed.Length);
+                }
+            }
         }
 
         /// <summary>
@@ -285,25 +288,28 @@ namespace Easy.Common.NetCore.Extentions
 
             byte[] bInput = Convert.FromBase64String(strCompressed); ;
             byte[] dataWrite = new byte[4096];
-            Stream stream = new GZipStream(new MemoryStream(bInput), CompressionMode.Decompress);
 
-            while (true)
+            using (var ms = new MemoryStream(bInput))
             {
-                int size = stream.Read(dataWrite, 0, dataWrite.Length);
-                if (size > 0)
+                using (Stream stream = new GZipStream(ms, CompressionMode.Decompress))
                 {
-                    totalLength += size;
-                    strUncompressed.Append(Encoding.Unicode.GetString(dataWrite, 0, size));
-                }
-                else
-                {
-                    break;
+                    while (true)
+                    {
+                        int size = stream.Read(dataWrite, 0, dataWrite.Length);
+                        if (size > 0)
+                        {
+                            totalLength += size;
+                            strUncompressed.Append(Encoding.Unicode.GetString(dataWrite, 0, size));
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+                    return strUncompressed.ToString();
                 }
             }
-
-            stream.Close();
-
-            return strUncompressed.ToString();
         }
 
         private static string ComputeHash(byte[] pwd, HashAlgorithm hash)
