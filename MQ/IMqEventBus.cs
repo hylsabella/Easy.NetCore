@@ -1,5 +1,4 @@
-﻿using Easy.Common.NetCore.MQ.RabbitMQ;
-using System;
+﻿using System;
 
 namespace Easy.Common.NetCore.MQ
 {
