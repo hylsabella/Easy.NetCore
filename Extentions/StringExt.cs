@@ -159,6 +159,18 @@ namespace Easy.Common.NetCore.Extentions
             return result;
         }
 
+        public static string ToBase64String(this byte[] buffer)
+        {
+            if (buffer == null || buffer.Length <= 0)
+            {
+                return string.Empty;
+            }
+
+            string result = Convert.ToBase64String(buffer);
+
+            return result;
+        }
+
         public static string DecodeBase64String(this string input)
         {
             if (string.IsNullOrWhiteSpace(input))
@@ -167,6 +179,18 @@ namespace Easy.Common.NetCore.Extentions
             }
 
             byte[] buffer = Convert.FromBase64String(input);
+
+            string result = Encoding.UTF8.GetString(buffer);
+
+            return result;
+        }
+
+        public static string DecodeBase64String(this byte[] buffer)
+        {
+            if (buffer == null || buffer.Length <= 0)
+            {
+                return string.Empty;
+            }
 
             string result = Encoding.UTF8.GetString(buffer);
 
