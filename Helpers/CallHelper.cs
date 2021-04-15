@@ -14,7 +14,7 @@ namespace Easy.Common.NetCore.Helpers
         /// <param name="reTryDelay">重试间隔</param>
         /// <param name="remark">备注</param>
         /// <returns>true：重试成功；false：重试失败</returns>
-        public static bool RrTryRun(uint reTryCount, Func<bool> reTryAction, TimeSpan? reTryDelay, string remark = "")
+        public static bool RrTryRun(uint reTryCount, Func<bool> reTryAction, TimeSpan? reTryDelay = null, string remark = "")
         {
             if (reTryCount <= 0) throw new FException("reTryCount至少重试1次");
             if (reTryAction == null) throw new FException("action不能为空");
