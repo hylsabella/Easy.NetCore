@@ -102,6 +102,11 @@ namespace Easy.Common.NetCore.Cache
         /// </summary>
         List<T> QueuePopList<T>(string queueName, long stop = -1, int db = 0);
 
+        /// <summary>
+        /// 获取队列元素个数
+        /// </summary>
+        long GetQueueLength(string queueName, int db = 0);
+
 
         /// <summary>
         /// 哈希获取值

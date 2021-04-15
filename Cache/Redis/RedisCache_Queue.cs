@@ -112,5 +112,17 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             return result;
         }
+
+        /// <summary>
+        /// 获取队列元素个数
+        /// </summary>
+        public long GetQueueLength(string queueName, int db = 0)
+        {
+            CheckHelper.NotEmpty(queueName, "queueName");
+
+            var redisdb = RedisManager.Connection.GetDatabase(db);
+
+            return redisdb.ListLengthAsync(queueName).Result;
+        }
     }
 }
