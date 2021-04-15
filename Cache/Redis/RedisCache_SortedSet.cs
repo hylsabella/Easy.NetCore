@@ -22,7 +22,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            redisdb.SortedSetAdd(key, memberValue, score);
+            redisdb.SortedSetAddAsync(key, memberValue, score).Wait();
         }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            return redisdb.SortedSetScore(key, memberValue);
+            return redisdb.SortedSetScoreAsync(key, memberValue).Result;
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            long? rank = redisdb.SortedSetRank(key, member, order);
+            long? rank = redisdb.SortedSetRankAsync(key, member, order).Result;
 
             //排名以 0 为底，也就是说， score 值最小的成员排名为 0，这里+1便于理解
             rank = rank.HasValue ? rank + 1 : null;
@@ -83,7 +83,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             Order order = isAsc ? Order.Ascending : Order.Descending;
 
-            var values = redisdb.SortedSetRangeByRank(key, start, stop, order);
+            var values = redisdb.SortedSetRangeByRankAsync(key, start, stop, order).Result;
 
             if (values == null || values.Length <= 0)
             {
@@ -117,7 +117,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             Order order = isAsc ? Order.Ascending : Order.Descending;
 
-            SortedSetEntry[] entrys = redisdb.SortedSetRangeByRankWithScores(key, start, stop, order);
+            SortedSetEntry[] entrys = redisdb.SortedSetRangeByRankWithScoresAsync(key, start, stop, order).Result;
 
             if (entrys == null || entrys.Length <= 0)
             {
@@ -148,7 +148,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             Order order = isAsc ? Order.Ascending : Order.Descending;
 
-            var values = redisdb.SortedSetRangeByScore(key, startScore, stopScore, order: order);
+            var values = redisdb.SortedSetRangeByScoreAsync(key, startScore, stopScore, order: order).Result;
 
             if (values == null || values.Length <= 0)
             {
@@ -178,7 +178,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            return redisdb.SortedSetLength(key);
+            return redisdb.SortedSetLengthAsync(key).Result;
         }
 
         /// <summary>
@@ -195,7 +195,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            return redisdb.SortedSetRemove(key, memberValue);
+            return redisdb.SortedSetRemoveAsync(key, memberValue).Result;
         }
 
         /// <summary>
@@ -221,7 +221,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            return redisdb.SortedSetRemove(key, redisValues.ToArray());
+            return redisdb.SortedSetRemoveAsync(key, redisValues.ToArray()).Result;
         }
 
         /// <summary>
@@ -242,7 +242,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            return redisdb.SortedSetRemoveRangeByRank(key, start, stop);
+            return redisdb.SortedSetRemoveRangeByRankAsync(key, start, stop).Result;
         }
 
         /// <summary>
@@ -261,7 +261,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            return redisdb.SortedSetRemoveRangeByScore(key, startScore, stopScore);
+            return redisdb.SortedSetRemoveRangeByScoreAsync(key, startScore, stopScore).Result;
         }
 
         /// <summary>
@@ -279,7 +279,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            return redisdb.SortedSetIncrement(key, member, value);
+            return redisdb.SortedSetIncrementAsync(key, member, value).Result;
         }
 
         /// <summary>
@@ -299,7 +299,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            return redisdb.SortedSetDecrement(key, member, value);
+            return redisdb.SortedSetDecrementAsync(key, member, value).Result;
         }
 
         /// <summary>
@@ -316,7 +316,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            SortedSetEntry[] entrys = redisdb.SortedSetPop(key, count, isAsc ? Order.Ascending : Order.Descending);
+            SortedSetEntry[] entrys = redisdb.SortedSetPopAsync(key, count, isAsc ? Order.Ascending : Order.Descending).Result;
 
             if (entrys == null || entrys.Length <= 0)
             {

@@ -21,7 +21,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            redisdb.SetAdd(key, memberValue);
+            redisdb.SetAddAsync(key, memberValue).Wait();
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            redisdb.SetAdd(key, redisValues.ToArray());
+            redisdb.SetAddAsync(key, redisValues.ToArray()).Wait();
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            RedisValue[] redisValues = redisdb.SetMembers(key) ?? Array.Empty<RedisValue>();
+            RedisValue[] redisValues = redisdb.SetMembersAsync(key).Result ?? Array.Empty<RedisValue>();
 
             foreach (string value in redisValues)
             {
@@ -91,7 +91,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            return redisdb.SetLength(key);
+            return redisdb.SetLengthAsync(key).Result;
         }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            redisdb.SetRemove(key, memberValue);
+            redisdb.SetRemoveAsync(key, memberValue).Wait();
         }
 
         /// <summary>
@@ -136,7 +136,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            redisdb.SetRemove(key, redisValues.ToArray());
+            redisdb.SetRemoveAsync(key, redisValues.ToArray()).Wait();
         }
 
         /// <summary>
@@ -154,7 +154,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            return redisdb.SetContains(key, memberValue);
+            return redisdb.SetContainsAsync(key, memberValue).Result;
         }
     }
 }

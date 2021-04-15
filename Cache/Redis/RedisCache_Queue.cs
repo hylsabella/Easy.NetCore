@@ -19,7 +19,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             string jsonData = JsonConvert.SerializeObject(data);
 
-            return redisdb.ListLeftPush(queueName, jsonData);
+            return redisdb.ListRightPushAsync(queueName, jsonData).Result;
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            var value = redisdb.ListRightPop(queueName);
+            var value = redisdb.ListLeftPopAsync(queueName).Result;
 
             if (value == RedisValue.Null)
             {
@@ -42,18 +42,19 @@ namespace Easy.Common.NetCore.Cache.Redis
         }
 
         /// <summary>
-        /// 在一个原子时间内，执行以下两个动作：QueuePush和QueuePop
+        /// 从一个队列RightPop元素到另外一个队列LeftPush
+        /// 在一个原子时间内，执行以下两个动作：QueuePop和QueuePush
         /// </summary>
-        /// <param name="queueName_1nd">QueuePush的队列</param>
-        /// <param name="queueName_2nd">QueuePop的队列</param>
-        public T QueuePop1ndAndQueuePush2nd<T>(string queueName_1nd, string queueName_2nd, int db = 0)
+        /// <param name="popQueueName_1nd">RightPop的队列</param>
+        /// <param name="pushQueueName_2nd">QueuePush的队列</param>
+        public T QueueRPopAndQueueLPush<T>(string popQueueName_1nd, string pushQueueName_2nd, int db = 0)
         {
-            CheckHelper.NotEmpty(queueName_1nd, "queueName_1nd");
-            CheckHelper.NotEmpty(queueName_2nd, "queueName_2nd");
+            CheckHelper.NotEmpty(popQueueName_1nd, "queueName_1nd");
+            CheckHelper.NotEmpty(pushQueueName_2nd, "queueName_2nd");
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            var value = redisdb.ListRightPopLeftPush(queueName_1nd, queueName_2nd);
+            var value = redisdb.ListRightPopLeftPushAsync(popQueueName_1nd, pushQueueName_2nd).Result;
 
             if (value == RedisValue.Null)
             {
@@ -74,7 +75,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            var redisValues = redisdb.ListRange(queueName, start, stop);
+            var redisValues = redisdb.ListRangeAsync(queueName, start, stop).Result;
 
             foreach (var redisValue in redisValues)
             {
@@ -95,7 +96,7 @@ namespace Easy.Common.NetCore.Cache.Redis
 
             var redisdb = RedisManager.Connection.GetDatabase(db);
 
-            redisdb.ListTrim(queueName, start, stop);
+            redisdb.ListTrimAsync(queueName, start, stop).Wait();
         }
 
         /// <summary>

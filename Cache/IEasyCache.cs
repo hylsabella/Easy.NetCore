@@ -80,11 +80,12 @@ namespace Easy.Common.NetCore.Cache
         T QueuePop<T>(string queueName, int db = 0);
 
         /// <summary>
-        /// 在一个原子时间内，执行以下两个动作：QueuePush和QueuePop
+        /// 从一个队列RightPop元素到另外一个队列LeftPush
+        /// 在一个原子时间内，执行以下两个动作：QueuePop和QueuePush
         /// </summary>
-        /// <param name="queueName_1nd">QueuePush的队列</param>
-        /// <param name="queueName_2nd">QueuePop的队列</param>
-        T QueuePop1ndAndQueuePush2nd<T>(string queueName_1nd, string queueName_2nd, int db = 0);
+        /// <param name="popQueueName_1nd">RightPop的队列</param>
+        /// <param name="pushQueueName_2nd">QueuePush的队列</param>
+        T QueueRPopAndQueueLPush<T>(string popQueueName_1nd, string pushQueueName_2nd, int db = 0);
 
         /// <summary>
         /// 返回列表 key 中指定区间内的元素，区间以偏移量 start 和 stop 指定。
