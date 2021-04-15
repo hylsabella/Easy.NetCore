@@ -172,8 +172,6 @@ namespace Easy.Common.NetCore.Cache.Redis
         {
             int maxRetryDelay = (int)retryDelay.TotalMilliseconds;
 
-            Random rnd = new Random();
-
             int currRetry = 0;
 
             while (currRetry++ < retryCount)
