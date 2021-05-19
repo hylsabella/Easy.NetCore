@@ -4,6 +4,7 @@ using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Easy.Common.NetCore
 {
@@ -58,7 +59,17 @@ namespace Easy.Common.NetCore
             }, remark: "HttpPost");
 
             //响应状态码是否表示成功 OK(200)
-            if (!restResponse.IsSuccessful) throw new Exception($"{url}接口异常：{restResponse.ErrorMessage}", restResponse.ErrorException);
+            if (!restResponse.IsSuccessful)
+            {
+                var errSb = new StringBuilder();
+                errSb.AppendLine($"{url}接口异常");
+                errSb.AppendLine($"Content：{restResponse.Content}");
+                errSb.AppendLine($"StatusCode：{restResponse.StatusCode}");
+                errSb.AppendLine($"ResponseStatus：{restResponse.ResponseStatus}");
+                errSb.AppendLine($"ErrorMessage：{restResponse.ErrorMessage}");
+
+                throw new Exception(errSb.ToString(), restResponse.ErrorException);
+            }
 
             return restResponse.Content;
         }
@@ -103,7 +114,17 @@ namespace Easy.Common.NetCore
             }, remark: "HttpGet");
 
             //响应状态码是否表示成功 OK(200)
-            if (!restResponse.IsSuccessful) throw new Exception($"{url}接口异常：{restResponse.ErrorMessage}", restResponse.ErrorException);
+            if (!restResponse.IsSuccessful)
+            {
+                var errSb = new StringBuilder();
+                errSb.AppendLine($"{url}接口异常");
+                errSb.AppendLine($"Content：{restResponse.Content}");
+                errSb.AppendLine($"StatusCode：{restResponse.StatusCode}");
+                errSb.AppendLine($"ResponseStatus：{restResponse.ResponseStatus}");
+                errSb.AppendLine($"ErrorMessage：{restResponse.ErrorMessage}");
+
+                throw new Exception(errSb.ToString(), restResponse.ErrorException);
+            }
 
             return restResponse.Content;
         }
