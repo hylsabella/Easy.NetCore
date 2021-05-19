@@ -1,5 +1,4 @@
-﻿using Easy.Common.NetCore.Extentions;
-using Easy.Common.NetCore.IoC;
+﻿using Easy.Common.NetCore.IoC;
 using Easy.Common.NetCore.Security;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;

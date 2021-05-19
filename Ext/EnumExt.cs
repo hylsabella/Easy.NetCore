@@ -5,7 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 
-namespace Easy.Common.NetCore.Extentions
+namespace Easy.Common.NetCore
 {
     public static class EnumExt
     {

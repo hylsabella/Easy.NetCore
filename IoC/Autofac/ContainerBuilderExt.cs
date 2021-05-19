@@ -1,6 +1,5 @@
 ﻿using Autofac;
 using Easy.Common.NetCore.Attributes;
-using Easy.Common.NetCore.Extentions;
 using Easy.Common.NetCore.Repository;
 using System;
 using System.Reflection;

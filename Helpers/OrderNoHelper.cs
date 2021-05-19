@@ -1,5 +1,4 @@
 ﻿using Easy.Common.NetCore.Exceptions;
-using Easy.Common.NetCore.Extentions;
 using System;
 
 namespace Easy.Common.NetCore.Helpers

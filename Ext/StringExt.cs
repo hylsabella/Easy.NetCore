@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 
-namespace Easy.Common.NetCore.Extentions
+namespace Easy.Common.NetCore
 {
     public static class StringExt
     {

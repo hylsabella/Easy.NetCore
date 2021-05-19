@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace Easy.Common.NetCore.Extentions
+namespace Easy.Common.NetCore
 {
     public static class ExpressionExt
     {

@@ -1,5 +1,4 @@
-﻿using Easy.Common.NetCore.Extentions;
-using Easy.Common.NetCore.Helpers;
+﻿using Easy.Common.NetCore.Helpers;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;

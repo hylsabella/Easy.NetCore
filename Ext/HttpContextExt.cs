@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Easy.Common.NetCore.Extentions
+namespace Easy.Common.NetCore
 {
     public static class HttpContextExt
     {

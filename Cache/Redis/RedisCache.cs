@@ -1,5 +1,4 @@
-﻿using Easy.Common.NetCore.Extentions;
-using NLog;
+﻿using NLog;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;

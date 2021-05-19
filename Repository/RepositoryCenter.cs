@@ -1,5 +1,4 @@
-﻿using Easy.Common.NetCore.Extentions;
-using Easy.Common.NetCore.Helpers;
+﻿using Easy.Common.NetCore.Helpers;
 using Easy.Common.NetCore.IoC;
 using Easy.Common.NetCore.Setting;
 using Microsoft.Extensions.Configuration;

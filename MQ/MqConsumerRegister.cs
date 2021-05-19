@@ -1,5 +1,4 @@
 ﻿using Autofac;
-using Easy.Common.NetCore.Extentions;
 using System;
 
 namespace Easy.Common.NetCore.MQ

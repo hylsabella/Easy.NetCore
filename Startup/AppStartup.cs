@@ -3,7 +3,6 @@ using Autofac.Extensions.DependencyInjection;
 using Autofac.Extras.CommonServiceLocator;
 using Easy.Common.NetCore.Consul;
 using Easy.Common.NetCore.Enums;
-using Easy.Common.NetCore.Extentions;
 using Easy.Common.NetCore.Filters;
 using Easy.Common.NetCore.Helpers;
 using Easy.Common.NetCore.IoC;

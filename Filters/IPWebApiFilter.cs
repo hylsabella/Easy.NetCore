@@ -1,5 +1,4 @@
 ﻿using Easy.Common.NetCore.Cache;
-using Easy.Common.NetCore.Extentions;
 using Easy.Common.NetCore.IoC;
 using Easy.Common.NetCore.Security.DefendAttack;
 using Microsoft.AspNetCore.Http;

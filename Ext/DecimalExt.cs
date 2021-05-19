@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Easy.Common.NetCore.Extentions
+namespace Easy.Common.NetCore
 {
     public static class DecimalExt
     {

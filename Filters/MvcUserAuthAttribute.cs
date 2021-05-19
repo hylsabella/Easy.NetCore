@@ -1,5 +1,4 @@
-﻿using Easy.Common.NetCore.Extentions;
-using Easy.Common.NetCore.IoC;
+﻿using Easy.Common.NetCore.IoC;
 using Easy.Common.NetCore.UI;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;

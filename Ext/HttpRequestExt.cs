@@ -9,7 +9,7 @@ using System.Linq;
 using System.Web;
 using System.Xml;
 
-namespace Easy.Common.NetCore.Extentions
+namespace Easy.Common.NetCore
 {
     public static class HttpRequestExt
     {
