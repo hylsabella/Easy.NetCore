@@ -1,5 +1,6 @@
 ﻿using Easy.Common.NetCore.Exceptions;
 using Easy.Common.NetCore.Helpers;
+using Newtonsoft.Json;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,15 @@ namespace Easy.Common.NetCore
 {
     public static class HttpExt
     {
+        public static T HttpPost<T>(this string url, Dictionary<string, object> postParams, HttpPostCfg httpCfg = null)
+        {
+            string resultStr = url.HttpPost(postParams, httpCfg);
+
+            var result = JsonConvert.DeserializeObject<T>(resultStr);
+
+            return result;
+        }
+
         public static string HttpPost(this string url, Dictionary<string, object> postParams, HttpPostCfg httpCfg = null)
         {
             if (string.IsNullOrWhiteSpace(url)) throw new FException("url不能为空");
@@ -72,6 +82,15 @@ namespace Easy.Common.NetCore
             }
 
             return restResponse.Content;
+        }
+
+        public static T HttpGet<T>(this string url, Dictionary<string, object> getParams, HttpGetCfg httpCfg = null)
+        {
+            string resultStr = url.HttpGet(getParams, httpCfg);
+
+            var result = JsonConvert.DeserializeObject<T>(resultStr);
+
+            return result;
         }
 
         public static string HttpGet(this string url, Dictionary<string, object> getParams, HttpGetCfg httpCfg = null)
