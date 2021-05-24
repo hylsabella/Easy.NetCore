@@ -76,7 +76,7 @@ namespace Easy.Common.NetCore.Repository
 
                     if (newId <= 0) throw new RepositoryException("插入数据失败！");
 
-                    model.ID = newId;
+                    model.Id = newId;
 
                     return newId;
                 }
@@ -134,7 +134,7 @@ namespace Easy.Common.NetCore.Repository
         public void Update(T model, string connectionStringName = "default", string tableIndex = "")
         {
             CheckHelper.NotNull(model, "model");
-            if (model.ID <= 0) throw new Exception("主键Id必须大于0！");
+            if (model.Id <= 0) throw new Exception("主键Id必须大于0！");
 
             string connectionString = RepositoryCenter.GetConnectionString(connectionStringName);
 
