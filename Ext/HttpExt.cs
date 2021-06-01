@@ -1,5 +1,6 @@
 ﻿using Easy.Common.NetCore.Exceptions;
 using Easy.Common.NetCore.Helpers;
+using Easy.Common.NetCore.Serializer;
 using Newtonsoft.Json;
 using RestSharp;
 using System;
@@ -11,16 +12,16 @@ namespace Easy.Common.NetCore
 {
     public static class HttpExt
     {
-        public static T HttpPost<T>(this string url, Dictionary<string, object> postParams, HttpPostCfg httpCfg = null)
+        public static T HttpPost<T>(this string url, Dictionary<string, object> postParams, Dictionary<string, string> headers = null, HttpPostCfg httpCfg = null)
         {
-            string resultStr = url.HttpPost(postParams, httpCfg);
+            string resultStr = url.HttpPost(postParams, headers, httpCfg);
 
             var result = JsonConvert.DeserializeObject<T>(resultStr);
 
             return result;
         }
 
-        public static string HttpPost(this string url, Dictionary<string, object> postParams, HttpPostCfg httpCfg = null)
+        public static string HttpPost(this string url, Dictionary<string, object> postParams, Dictionary<string, string> headers = null, HttpPostCfg httpCfg = null)
         {
             if (string.IsNullOrWhiteSpace(url)) throw new FException("url不能为空");
             if (postParams == null || !postParams.Any()) throw new FException("postParams不能为空");
@@ -34,12 +35,17 @@ namespace Easy.Common.NetCore
                 httpCfg.ReTryCount = 1;//至少执行一次
             }
 
-            var restRequest = new RestRequest(Method.POST);
+            var restRequest = new RestRequest { Method = Method.POST, JsonSerializer = new RestSharpJsonNetSerializer() };
             restRequest.Timeout = 10 * 1000;//连接超时设置为10秒
 
             restRequest.AddHeader("Accept", "*/*");
             string contentType = GetContentType(httpCfg.ContentType);
             restRequest.AddHeader("Content-Type", contentType);
+
+            if (headers != null && headers.Any())
+            {
+                restRequest.AddHeaders(headers);
+            }
 
             if (httpCfg.ContentType == ContentType.Json)
             {
@@ -84,16 +90,16 @@ namespace Easy.Common.NetCore
             return restResponse.Content;
         }
 
-        public static T HttpGet<T>(this string url, Dictionary<string, object> getParams, HttpGetCfg httpCfg = null)
+        public static T HttpGet<T>(this string url, Dictionary<string, object> getParams, Dictionary<string, string> headers = null, HttpGetCfg httpCfg = null)
         {
-            string resultStr = url.HttpGet(getParams, httpCfg);
+            string resultStr = url.HttpGet(getParams, headers, httpCfg);
 
             var result = JsonConvert.DeserializeObject<T>(resultStr);
 
             return result;
         }
 
-        public static string HttpGet(this string url, Dictionary<string, object> getParams, HttpGetCfg httpCfg = null)
+        public static string HttpGet(this string url, Dictionary<string, object> getParams, Dictionary<string, string> headers = null, HttpGetCfg httpCfg = null)
         {
             if (string.IsNullOrWhiteSpace(url)) throw new FException("url不能为空");
             if (getParams == null || !getParams.Any()) throw new FException("getParams不能为空");
@@ -107,7 +113,7 @@ namespace Easy.Common.NetCore
                 httpCfg.ReTryCount = 1;//至少执行一次
             }
 
-            var restRequest = new RestRequest(Method.GET);
+            var restRequest = new RestRequest { Method = Method.GET, JsonSerializer = new RestSharpJsonNetSerializer() };
             restRequest.Timeout = 10 * 1000;//连接超时设置为10秒
             restRequest.AddHeader("Accept", "*/*");
 
@@ -115,6 +121,11 @@ namespace Easy.Common.NetCore
             {
                 string contentType = GetContentType(ContentType.Form);
                 restRequest.AddHeader("Content-Type", contentType);
+            }
+
+            if (headers != null && headers.Any())
+            {
+                restRequest.AddHeaders(headers);
             }
 
             foreach (var param in getParams)
@@ -188,14 +199,14 @@ namespace Easy.Common.NetCore
 
     public class HttpPostCfg
     {
-        public uint ReTryCount { get; set; } = 3;
+        public uint ReTryCount { get; set; } = 2;
 
         public ContentType ContentType { get; set; }
     }
 
     public class HttpGetCfg
     {
-        public uint ReTryCount { get; set; } = 3;
+        public uint ReTryCount { get; set; } = 2;
 
         public bool IsFormContentType { get; set; }
     }
