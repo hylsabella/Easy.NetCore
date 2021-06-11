@@ -93,8 +93,8 @@ namespace Easy.Common.NetCore.Startup
             //模型验证
             mvcBuilder.AddFluentValidation(x =>
             {
-                //如果设置为false，那么FluentValidation是唯一执行的验证库
-                x.RunDefaultMvcValidationAfterFluentValidationExecutes = true;
+                //设置DisableDataAnnotationsValidation为true，那么FluentValidation是唯一执行的验证库
+                x.DisableDataAnnotationsValidation = false;
 
                 //自动注册
                 var typeInCurrAppDomain = Assembly.GetEntryAssembly().GetTypes().First();
