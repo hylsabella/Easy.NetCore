@@ -28,7 +28,7 @@ namespace Easy.Common.NetCore
 
             if (httpCfg == null)
             {
-                httpCfg = CreateDefaultHttpPostCfg();
+                httpCfg = HttpPostCfg.CreateDefaultHttpPostCfg();
             }
             else if (httpCfg.ReTryCount <= 0)
             {
@@ -106,7 +106,7 @@ namespace Easy.Common.NetCore
 
             if (httpCfg == null)
             {
-                httpCfg = CreateDefaultHttpGetCfg();
+                httpCfg = HttpGetCfg.CreateDefaultHttpGetCfg();
             }
             else if (httpCfg.ReTryCount <= 0)
             {
@@ -159,28 +159,6 @@ namespace Easy.Common.NetCore
             return restResponse.Content;
         }
 
-        private static HttpPostCfg CreateDefaultHttpPostCfg()
-        {
-            var httpCfg = new HttpPostCfg
-            {
-                ReTryCount = 3,
-                ContentType = ContentType.Json,
-            };
-
-            return httpCfg;
-        }
-
-        private static HttpGetCfg CreateDefaultHttpGetCfg()
-        {
-            var httpCfg = new HttpGetCfg
-            {
-                ReTryCount = 3,
-                IsFormContentType = false,
-            };
-
-            return httpCfg;
-        }
-
         private static string GetContentType(ContentType contentType)
         {
             switch (contentType)
@@ -199,16 +177,42 @@ namespace Easy.Common.NetCore
 
     public class HttpPostCfg
     {
-        public uint ReTryCount { get; set; } = 2;
+        public const int _reTryCount = 2;
+
+        public uint ReTryCount { get; set; } = _reTryCount;
 
         public ContentType ContentType { get; set; }
+
+        public static HttpPostCfg CreateDefaultHttpPostCfg()
+        {
+            var httpCfg = new HttpPostCfg
+            {
+                ReTryCount = _reTryCount,
+                ContentType = ContentType.Json,
+            };
+
+            return httpCfg;
+        }
     }
 
     public class HttpGetCfg
     {
-        public uint ReTryCount { get; set; } = 2;
+        public const int _reTryCount = 2;
+
+        public uint ReTryCount { get; set; } = _reTryCount;
 
         public bool IsFormContentType { get; set; }
+
+        public static HttpGetCfg CreateDefaultHttpGetCfg()
+        {
+            var httpCfg = new HttpGetCfg
+            {
+                ReTryCount = _reTryCount,
+                IsFormContentType = false,
+            };
+
+            return httpCfg;
+        }
     }
 
     public enum ContentType
