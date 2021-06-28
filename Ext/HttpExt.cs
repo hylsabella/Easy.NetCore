@@ -90,7 +90,7 @@ namespace Easy.Common.NetCore
             return restResponse.Content;
         }
 
-        public static T HttpGet<T>(this string url, Dictionary<string, object> getParams, Dictionary<string, string> headers = null, HttpGetCfg httpCfg = null)
+        public static T HttpGet<T>(this string url, Dictionary<string, object> getParams = null, Dictionary<string, string> headers = null, HttpGetCfg httpCfg = null)
         {
             string resultStr = url.HttpGet(getParams, headers, httpCfg);
 
@@ -99,10 +99,9 @@ namespace Easy.Common.NetCore
             return result;
         }
 
-        public static string HttpGet(this string url, Dictionary<string, object> getParams, Dictionary<string, string> headers = null, HttpGetCfg httpCfg = null)
+        public static string HttpGet(this string url, Dictionary<string, object> getParams = null, Dictionary<string, string> headers = null, HttpGetCfg httpCfg = null)
         {
             if (string.IsNullOrWhiteSpace(url)) throw new FException("url不能为空");
-            if (getParams == null || !getParams.Any()) throw new FException("getParams不能为空");
 
             if (httpCfg == null)
             {
@@ -128,9 +127,12 @@ namespace Easy.Common.NetCore
                 restRequest.AddHeaders(headers);
             }
 
-            foreach (var param in getParams)
+            if (getParams?.Count > 0)
             {
-                restRequest.AddParameter(param.Key, param.Value);
+                foreach (var param in getParams)
+                {
+                    restRequest.AddParameter(param.Key, param.Value);
+                }
             }
 
             //如果是网络连接异常，那么重试
