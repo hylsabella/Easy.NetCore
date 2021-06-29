@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Easy.Common.NetCore.Cache;
+using System;
 using System.IO;
 using System.Text;
 
@@ -52,13 +53,18 @@ namespace Easy.Common.NetCore.Helpers
         private uint[,] ipmap;
         private string[] addrArr;
         private byte[] data;
+        private static EasyMemoryCache memoryCache = new EasyMemoryCache(TimeSpan.FromMinutes(10));
 
         /// <summary>
         /// 初始化二进制 qqzeng-ip-utf8.dat 数据
         /// </summary>
         public IPSearch(string dataPath)
         {
-            data = File.ReadAllBytes(dataPath);
+            data = memoryCache.Get("IPData", () =>
+            {
+                var data = File.ReadAllBytes(dataPath);
+                return data;
+            }, isExpired: true);
 
             long firstStartIpOffset = BytesToLong(data[0], data[1], data[2], data[3]);//索引区第一条流位置
             long lastStartIpOffset = BytesToLong(data[4], data[5], data[6], data[7]);//索引区最后一条流位置
