@@ -62,8 +62,8 @@ namespace Easy.Common.NetCore.Helpers
         {
             data = memoryCache.Get("IPData", () =>
             {
-                var data = File.ReadAllBytes(dataPath);
-                return data;
+                var bytes = File.ReadAllBytes(dataPath);
+                return bytes;
             }, isExpired: true);
 
             long firstStartIpOffset = BytesToLong(data[0], data[1], data[2], data[3]);//索引区第一条流位置
@@ -126,6 +126,8 @@ namespace Easy.Common.NetCore.Helpers
         /// <returns>亚洲|中国|香港|九龙|油尖旺|新世界电讯|810200|Hong Kong|HK|114.17495|22.327115</returns>
         public string Query(string ip)
         {
+            if (string.IsNullOrWhiteSpace(ip)) return string.Empty;
+
             long val = IpToInt(ip, out long pref);
             long low = prefmap[pref, 0], high = prefmap[pref, 1];
 
