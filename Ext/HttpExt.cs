@@ -64,6 +64,14 @@ namespace Easy.Common.NetCore
                 }
             }
 
+            if (httpCfg.Cookies != null && httpCfg.Cookies.Any())
+            {
+                foreach (var param in httpCfg.Cookies)
+                {
+                    restRequest.AddCookie(param.Key, param.Value);
+                }
+            }
+
             //如果是网络连接异常，那么重试
             IRestResponse restResponse = null;
             CallHelper.ReTryRun(reTryCount: httpCfg.ReTryCount, reTryAction: () =>
@@ -135,6 +143,14 @@ namespace Easy.Common.NetCore
                 }
             }
 
+            if (httpCfg.Cookies != null && httpCfg.Cookies.Any())
+            {
+                foreach (var param in httpCfg.Cookies)
+                {
+                    restRequest.AddCookie(param.Key, param.Value);
+                }
+            }
+
             //如果是网络连接异常，那么重试
             IRestResponse restResponse = null;
             CallHelper.ReTryRun(reTryCount: httpCfg.ReTryCount, reTryAction: () =>
@@ -185,6 +201,8 @@ namespace Easy.Common.NetCore
 
         public ContentType ContentType { get; set; }
 
+        public Dictionary<string, string> Cookies { get; set; }
+
         public static HttpPostCfg CreateDefaultHttpPostCfg()
         {
             var httpCfg = new HttpPostCfg
@@ -204,6 +222,8 @@ namespace Easy.Common.NetCore
         public uint ReTryCount { get; set; } = _reTryCount;
 
         public bool IsFormContentType { get; set; }
+
+        public Dictionary<string, string> Cookies { get; set; }
 
         public static HttpGetCfg CreateDefaultHttpGetCfg()
         {
