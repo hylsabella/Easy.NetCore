@@ -12,6 +12,13 @@ namespace Easy.Common.NetCore
 {
     public static class HttpExt
     {
+        public static string HttpPost(this string url, Dictionary<string, object> postParams, Dictionary<string, string> headers = null, HttpPostCfg httpCfg = null)
+        {
+            IRestResponse response = HttpPostForResponse(url, postParams, headers, ref httpCfg);
+
+            return response.Content;
+        }
+
         public static T HttpPost<T>(this string url, Dictionary<string, object> postParams, Dictionary<string, string> headers = null, HttpPostCfg httpCfg = null)
         {
             string resultStr = url.HttpPost(postParams, headers, httpCfg);
@@ -21,7 +28,14 @@ namespace Easy.Common.NetCore
             return result;
         }
 
-        public static string HttpPost(this string url, Dictionary<string, object> postParams, Dictionary<string, string> headers = null, HttpPostCfg httpCfg = null)
+        public static byte[] HttpPostForBytes(this string url, Dictionary<string, object> postParams, Dictionary<string, string> headers = null, HttpPostCfg httpCfg = null)
+        {
+            IRestResponse restResponse = HttpPostForResponse(url, postParams, headers, ref httpCfg);
+
+            return restResponse.RawBytes;
+        }
+
+        private static IRestResponse HttpPostForResponse(string url, Dictionary<string, object> postParams, Dictionary<string, string> headers, ref HttpPostCfg httpCfg)
         {
             if (string.IsNullOrWhiteSpace(url)) throw new FException("url不能为空");
             if (postParams == null || !postParams.Any()) throw new FException("postParams不能为空");
@@ -95,6 +109,13 @@ namespace Easy.Common.NetCore
                 throw new Exception(errSb.ToString(), restResponse.ErrorException);
             }
 
+            return restResponse;
+        }
+
+        public static string HttpGet(this string url, Dictionary<string, object> getParams = null, Dictionary<string, string> headers = null, HttpGetCfg httpCfg = null)
+        {
+            IRestResponse restResponse = HttpGetForResponse(url, getParams, headers, ref httpCfg);
+
             return restResponse.Content;
         }
 
@@ -107,7 +128,14 @@ namespace Easy.Common.NetCore
             return result;
         }
 
-        public static string HttpGet(this string url, Dictionary<string, object> getParams = null, Dictionary<string, string> headers = null, HttpGetCfg httpCfg = null)
+        public static byte[] HttpGetBytes(this string url, Dictionary<string, object> getParams = null, Dictionary<string, string> headers = null, HttpGetCfg httpCfg = null)
+        {
+            IRestResponse response = HttpGetForResponse(url, getParams, headers, ref httpCfg);
+
+            return response.RawBytes;
+        }
+
+        private static IRestResponse HttpGetForResponse(string url, Dictionary<string, object> getParams, Dictionary<string, string> headers, ref HttpGetCfg httpCfg)
         {
             if (string.IsNullOrWhiteSpace(url)) throw new FException("url不能为空");
 
@@ -174,7 +202,7 @@ namespace Easy.Common.NetCore
                 throw new Exception(errSb.ToString(), restResponse.ErrorException);
             }
 
-            return restResponse.Content;
+            return restResponse;
         }
 
         private static string GetContentType(ContentType contentType)
