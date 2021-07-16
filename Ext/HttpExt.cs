@@ -12,6 +12,13 @@ namespace Easy.Common.NetCore
 {
     public static class HttpExt
     {
+        public static string HttpPost(this string url, Dictionary<string, object> postParams, Dictionary<string, string> headers = null, HttpPostCfg httpCfg = null)
+        {
+            IRestResponse response = HttpPostForResponse(url, postParams, headers, ref httpCfg);
+
+            return response.Content;
+        }
+
         public static T HttpPost<T>(this string url, Dictionary<string, object> postParams, Dictionary<string, string> headers = null, HttpPostCfg httpCfg = null)
         {
             string resultStr = url.HttpPost(postParams, headers, httpCfg);
@@ -21,14 +28,21 @@ namespace Easy.Common.NetCore
             return result;
         }
 
-        public static string HttpPost(this string url, Dictionary<string, object> postParams, Dictionary<string, string> headers = null, HttpPostCfg httpCfg = null)
+        public static byte[] HttpPostForBytes(this string url, Dictionary<string, object> postParams, Dictionary<string, string> headers = null, HttpPostCfg httpCfg = null)
+        {
+            IRestResponse restResponse = HttpPostForResponse(url, postParams, headers, ref httpCfg);
+
+            return restResponse.RawBytes;
+        }
+
+        private static IRestResponse HttpPostForResponse(string url, Dictionary<string, object> postParams, Dictionary<string, string> headers, ref HttpPostCfg httpCfg)
         {
             if (string.IsNullOrWhiteSpace(url)) throw new FException("url不能为空");
             if (postParams == null || !postParams.Any()) throw new FException("postParams不能为空");
 
             if (httpCfg == null)
             {
-                httpCfg = CreateDefaultHttpPostCfg();
+                httpCfg = HttpPostCfg.CreateDefaultHttpPostCfg();
             }
             else if (httpCfg.ReTryCount <= 0)
             {
@@ -64,6 +78,14 @@ namespace Easy.Common.NetCore
                 }
             }
 
+            if (httpCfg.Cookies != null && httpCfg.Cookies.Any())
+            {
+                foreach (var param in httpCfg.Cookies)
+                {
+                    restRequest.AddCookie(param.Key, param.Value);
+                }
+            }
+
             //如果是网络连接异常，那么重试
             IRestResponse restResponse = null;
             CallHelper.ReTryRun(reTryCount: httpCfg.ReTryCount, reTryAction: () =>
@@ -87,10 +109,17 @@ namespace Easy.Common.NetCore
                 throw new Exception(errSb.ToString(), restResponse.ErrorException);
             }
 
+            return restResponse;
+        }
+
+        public static string HttpGet(this string url, Dictionary<string, object> getParams = null, Dictionary<string, string> headers = null, HttpGetCfg httpCfg = null)
+        {
+            IRestResponse restResponse = HttpGetForResponse(url, getParams, headers, ref httpCfg);
+
             return restResponse.Content;
         }
 
-        public static T HttpGet<T>(this string url, Dictionary<string, object> getParams, Dictionary<string, string> headers = null, HttpGetCfg httpCfg = null)
+        public static T HttpGet<T>(this string url, Dictionary<string, object> getParams = null, Dictionary<string, string> headers = null, HttpGetCfg httpCfg = null)
         {
             string resultStr = url.HttpGet(getParams, headers, httpCfg);
 
@@ -99,14 +128,20 @@ namespace Easy.Common.NetCore
             return result;
         }
 
-        public static string HttpGet(this string url, Dictionary<string, object> getParams, Dictionary<string, string> headers = null, HttpGetCfg httpCfg = null)
+        public static byte[] HttpGetBytes(this string url, Dictionary<string, object> getParams = null, Dictionary<string, string> headers = null, HttpGetCfg httpCfg = null)
+        {
+            IRestResponse response = HttpGetForResponse(url, getParams, headers, ref httpCfg);
+
+            return response.RawBytes;
+        }
+
+        private static IRestResponse HttpGetForResponse(string url, Dictionary<string, object> getParams, Dictionary<string, string> headers, ref HttpGetCfg httpCfg)
         {
             if (string.IsNullOrWhiteSpace(url)) throw new FException("url不能为空");
-            if (getParams == null || !getParams.Any()) throw new FException("getParams不能为空");
 
             if (httpCfg == null)
             {
-                httpCfg = CreateDefaultHttpGetCfg();
+                httpCfg = HttpGetCfg.CreateDefaultHttpGetCfg();
             }
             else if (httpCfg.ReTryCount <= 0)
             {
@@ -128,9 +163,20 @@ namespace Easy.Common.NetCore
                 restRequest.AddHeaders(headers);
             }
 
-            foreach (var param in getParams)
+            if (getParams?.Count > 0)
             {
-                restRequest.AddParameter(param.Key, param.Value);
+                foreach (var param in getParams)
+                {
+                    restRequest.AddParameter(param.Key, param.Value);
+                }
+            }
+
+            if (httpCfg.Cookies != null && httpCfg.Cookies.Any())
+            {
+                foreach (var param in httpCfg.Cookies)
+                {
+                    restRequest.AddCookie(param.Key, param.Value);
+                }
             }
 
             //如果是网络连接异常，那么重试
@@ -156,29 +202,7 @@ namespace Easy.Common.NetCore
                 throw new Exception(errSb.ToString(), restResponse.ErrorException);
             }
 
-            return restResponse.Content;
-        }
-
-        private static HttpPostCfg CreateDefaultHttpPostCfg()
-        {
-            var httpCfg = new HttpPostCfg
-            {
-                ReTryCount = 3,
-                ContentType = ContentType.Json,
-            };
-
-            return httpCfg;
-        }
-
-        private static HttpGetCfg CreateDefaultHttpGetCfg()
-        {
-            var httpCfg = new HttpGetCfg
-            {
-                ReTryCount = 3,
-                IsFormContentType = false,
-            };
-
-            return httpCfg;
+            return restResponse;
         }
 
         private static string GetContentType(ContentType contentType)
@@ -199,16 +223,46 @@ namespace Easy.Common.NetCore
 
     public class HttpPostCfg
     {
-        public uint ReTryCount { get; set; } = 2;
+        public const int _reTryCount = 2;
+
+        public uint ReTryCount { get; set; } = _reTryCount;
 
         public ContentType ContentType { get; set; }
+
+        public Dictionary<string, string> Cookies { get; set; }
+
+        public static HttpPostCfg CreateDefaultHttpPostCfg()
+        {
+            var httpCfg = new HttpPostCfg
+            {
+                ReTryCount = _reTryCount,
+                ContentType = ContentType.Json,
+            };
+
+            return httpCfg;
+        }
     }
 
     public class HttpGetCfg
     {
-        public uint ReTryCount { get; set; } = 2;
+        public const int _reTryCount = 2;
+
+        public uint ReTryCount { get; set; } = _reTryCount;
 
         public bool IsFormContentType { get; set; }
+
+        public Dictionary<string, string> Cookies { get; set; }
+
+        public static HttpGetCfg CreateDefaultHttpGetCfg()
+        {
+            var httpCfg = new HttpGetCfg
+            {
+                ReTryCount = _reTryCount,
+                IsFormContentType = false,
+            };
+
+            return httpCfg;
+        }
     }
 
     public enum ContentType
