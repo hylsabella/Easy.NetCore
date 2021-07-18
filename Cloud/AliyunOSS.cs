@@ -1,7 +1,9 @@
 ﻿using Aliyun.OSS;
 using Easy.Common.NetCore.Enums;
 using Easy.Common.NetCore.Exceptions;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Easy.Common.NetCore.Cloud
@@ -74,6 +76,27 @@ namespace Easy.Common.NetCore.Cloud
             string fileUrl = isExist ? $"https://{bucketName}.{Endpoint}/{objectName}" : string.Empty;
 
             return (isExist: isExist, fileUrl: fileUrl);
+        }
+
+        public void DeleteObject(string bucketName, string objectName)
+        {
+            if (string.IsNullOrWhiteSpace(bucketName)) throw new FException($"bucketName不能为空");
+            if (string.IsNullOrWhiteSpace(objectName)) throw new FException($"objectName不能为空");
+
+            _ossClient.DeleteObject(bucketName, objectName);
+        }
+
+        public List<string> DeleteObjectList(string bucketName, List<string> objectNameList)
+        {
+            if (string.IsNullOrWhiteSpace(bucketName)) throw new FException($"bucketName不能为空");
+            if (objectNameList is { Count: <= 0 }) return new List<string>();
+
+            //简单模式（quiet）：设置quietMode为true，表示只返回删除失败的文件列表。
+            var request = new DeleteObjectsRequest(bucketName, objectNameList, quiet: true);
+
+            var result = _ossClient.DeleteObjects(request);
+
+            return result.Keys?.Select(x => x.Key).ToList() ?? new List<string>();
         }
 
         private Task<string> UploadFileAsync(string bucketName, string objectName, Stream fileStream, string contentType, bool isReplace)
