@@ -74,6 +74,8 @@ namespace Easy.Common.NetCore
 
         public static string ToMd5(this string input)
         {
+            if (string.IsNullOrWhiteSpace(input)) return input;
+
             MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
 
             string result = BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(input)));
@@ -87,6 +89,8 @@ namespace Easy.Common.NetCore
 
         public static string ToMd5Hex(this string input)
         {
+            if (string.IsNullOrWhiteSpace(input)) return input;
+
             MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
 
             byte[] returnBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(input));
